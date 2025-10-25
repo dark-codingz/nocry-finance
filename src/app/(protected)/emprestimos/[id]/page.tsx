@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { useSession } from '@supabase/auth-helpers-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -26,7 +26,7 @@ import type { LoanEventType } from '@/services/loans';
 // ============================================================================
 
 const eventSchema = z.object({
-  type: z.enum(['out', 'in', 'interest'], { required_error: 'Selecione um tipo' }),
+  type: z.enum(['topup', 'repayment', 'interest'], { required_error: 'Selecione um tipo' }),
   amountCents: z.number().int().positive('O valor deve ser maior que zero'),
   occurredAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida (use YYYY-MM-DD)'),
   description: z.string().optional(),
@@ -42,7 +42,6 @@ export default function LoanDetailPage() {
   const params = useParams();
   const router = useRouter();
   const loanId = params.id as string;
-  const supabase = useSupabaseClient();
   const session = useSession();
   const userId = session?.user?.id;
   const queryClient = useQueryClient();
@@ -55,11 +54,11 @@ export default function LoanDetailPage() {
     enabled: !!userId,
     queryFn: async () => {
       if (!userId) return [];
-      return await loansService.listLoansWithBalance(supabase, userId);
+      return await loansService.listLoans({ status: 'all' });
     },
   });
 
-  const loan = loans?.find((l) => l.loanId === loanId);
+  const loan = loans?.find((l) => l.id === loanId);
 
   // Query para buscar o timeline de eventos
   const { data: timeline, isLoading: isTimelineLoading } = useQuery({
@@ -67,7 +66,7 @@ export default function LoanDetailPage() {
     enabled: !!userId && !!loanId,
     queryFn: async () => {
       if (!userId || !loanId) return [];
-      return await loansService.getLoanTimeline(supabase, userId, loanId);
+      return await loansService.listLoanEvents(loanId);
     },
   });
 
@@ -75,7 +74,7 @@ export default function LoanDetailPage() {
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      type: 'out',
+      type: 'topup',
       amountCents: 0,
       occurredAt: new Date().toISOString().slice(0, 10),
       description: '',
@@ -86,19 +85,31 @@ export default function LoanDetailPage() {
   const addEvent = useMutation({
     mutationFn: async (data: EventFormData) => {
       if (!userId) throw new Error('Usuário não autenticado');
-      return await loansService.addEvent(supabase, userId, {
-        loanId,
+      
+      const eventInput = {
+        loan_id: loanId,
         type: data.type as LoanEventType,
-        amountCents: data.amountCents,
-        occurredAt: data.occurredAt,
-        description: data.description || undefined,
-      });
+        amount_cents: data.amountCents,
+        occurred_at: data.occurredAt,
+        notes: data.description || null,
+      };
+
+      // Chama o método correto baseado no tipo
+      if (data.type === 'topup') {
+        return await loansService.topupLoan(eventInput);
+      } else if (data.type === 'repayment') {
+        return await loansService.repayLoan(eventInput);
+      } else if (data.type === 'interest') {
+        return await loansService.addInterest(eventInput);
+      }
+      
+      throw new Error('Tipo de evento inválido');
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['loans', userId] });
       await queryClient.invalidateQueries({ queryKey: ['loans', userId, loanId, 'timeline'] });
       form.reset({
-        type: 'out',
+        type: 'topup',
         amountCents: 0,
         occurredAt: new Date().toISOString().slice(0, 10),
         description: '',
@@ -165,29 +176,29 @@ export default function LoanDetailPage() {
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 mb-2">{loan.person}</h1>
-              {loan.note && <p className="text-gray-600 italic">{loan.note}</p>}
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">{loan.person_name}</h1>
+              {loan.notes && <p className="text-gray-600 italic">{loan.notes}</p>}
             </div>
             <div className="mt-4 md:mt-0 text-right">
               <p className="text-sm text-gray-500 mb-1">Saldo</p>
               <p
                 className={`text-3xl font-bold ${
-                  loan.balanceCents > 0 ? 'text-green-600' : loan.balanceCents < 0 ? 'text-red-600' : 'text-gray-600'
+                  loan.balance_cents > 0 ? 'text-green-600' : loan.balance_cents < 0 ? 'text-red-600' : 'text-gray-600'
                 }`}
               >
-                {formatBRL(Math.abs(loan.balanceCents))}
+                {formatBRL(Math.abs(loan.balance_cents))}
               </p>
-              {loan.balanceCents > 0 && (
+              {loan.balance_cents > 0 && (
                 <span className="inline-block mt-2 px-3 py-1 text-sm bg-green-100 text-green-700 rounded-full">
                   A receber
                 </span>
               )}
-              {loan.balanceCents < 0 && (
+              {loan.balance_cents < 0 && (
                 <span className="inline-block mt-2 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-full">
                   Você deve
                 </span>
               )}
-              {loan.balanceCents === 0 && (
+              {loan.balance_cents === 0 && (
                 <span className="inline-block mt-2 px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full">
                   Quitado
                 </span>
@@ -199,15 +210,15 @@ export default function LoanDetailPage() {
           <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t">
             <div>
               <p className="text-sm text-gray-500">Emprestado</p>
-              <p className="text-lg font-semibold text-gray-800">{formatBRL(loan.outCents)}</p>
+              <p className="text-lg font-semibold text-gray-800">{formatBRL(loan.principal_cents)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Recebido</p>
-              <p className="text-lg font-semibold text-gray-800">{formatBRL(loan.inCents)}</p>
+              <p className="text-lg font-semibold text-gray-800">{formatBRL(loan.paid_cents)}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">Juros</p>
-              <p className="text-lg font-semibold text-gray-800">{formatBRL(loan.interestCents)}</p>
+              <p className="text-lg font-semibold text-gray-800">{formatBRL(loan.interest_cents)}</p>
             </div>
           </div>
         </div>
@@ -239,9 +250,9 @@ export default function LoanDetailPage() {
                   id="type"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="out">➖ Emprestei (saída)</option>
-                  <option value="in">➕ Recebi (entrada)</option>
-                  <option value="interest">🎁 Juros</option>
+                  <option value="topup">➕ Novo Aporte (emprestei mais)</option>
+                  <option value="repayment">💰 Pagamento Recebido</option>
+                  <option value="interest">📈 Juros</option>
                 </select>
                 {form.formState.errors.type && (
                   <p className="mt-1 text-sm text-red-600">{form.formState.errors.type.message}</p>
