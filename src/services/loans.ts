@@ -53,6 +53,26 @@ export type LoanEventInput = {
 };
 
 // ────────────────────────────────────────────────────────────────────────────
+// getLoanById - Buscar empréstimo por ID
+// ────────────────────────────────────────────────────────────────────────────
+export async function getLoanById(id: string): Promise<Loan | null> {
+  const supabase = createClientComponentClient();
+
+  const { data, error } = await supabase
+    .from('loans')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null; // Not found
+    throw error;
+  }
+
+  return data as Loan;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 // listLoans - Listar empréstimos com saldos
 // ────────────────────────────────────────────────────────────────────────────
 export async function listLoans(filters: {
