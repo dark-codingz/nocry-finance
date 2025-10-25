@@ -66,6 +66,9 @@ function labelMonth(ym: string): string {
 // ────────────────────────────────────────────────────────────────────────────
 
 function SkeletonChart() {
+  // Alturas fixas para evitar hydration mismatch
+  const heights = [80, 120, 95, 140, 110, 85, 130, 100, 115, 90, 125, 105];
+  
   return (
     <div className="glass rounded-xl2 p-6 border border-white/10 h-[340px]">
       <div className="flex items-center justify-between mb-4">
@@ -73,11 +76,11 @@ function SkeletonChart() {
         <div className="h-10 w-10 bg-nocry-goldDark/20 rounded-lg animate-pulse" />
       </div>
       <div className="h-[260px] flex items-end justify-between gap-2">
-        {[...Array(12)].map((_, i) => (
+        {heights.map((height, i) => (
           <div
             key={i}
             className="flex-1 bg-nocry-goldDark/20 rounded-t animate-pulse"
-            style={{ height: `${Math.random() * 100 + 50}px` }}
+            style={{ height: `${height}px` }}
           />
         ))}
       </div>

@@ -36,7 +36,7 @@ export default async function AdminPage() {
   // 1. Criar cliente Supabase server-side (cookies retorna Promise)
   // ─────────────────────────────────────────────────────────────────────
   const supabase = createServerComponentClient({
-    cookies: cookies,
+    cookies,
   });
 
   // ─────────────────────────────────────────────────────────────────────
