@@ -3,6 +3,29 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* NoCry Group Brand Tokens - Extended */
+  --nocry-gold: #d4af37;
+  --nocry-gold-dark: #3e371d;
+  --nocry-text: #cacaca;
+  --nocry-muted: #9f9d9d;
+  --nocry-card: #161616;
+  --nocry-black: #000000;
+
+  /* ═══════════════════════════════════════════════════════════════
+     NoCry Onboarding - Design Tokens
+     ═══════════════════════════════════════════════════════════════ */
+  --nc-bg: #000000;
+  --nc-text: #CACACA;
+  --nc-text-dim: #9F9D9D;
+  --nc-white: #EAEAEA;
+  --nc-gold: #D4AF37;
+  --nc-gold-10: rgba(212, 175, 55, 0.10);
+  --nc-gold-15: rgba(212, 175, 55, 0.15);
+  --nc-gold-20: rgba(212, 175, 55, 0.20);
+  --nc-glass: rgba(18, 18, 18, 0.6);
+  --nc-border: rgba(255, 255, 255, 0.08);
+  --nc-shadow: 0 0 25px rgba(212, 175, 55, 0.15);
 }
 
 @theme inline {
@@ -10,6 +33,20 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* NoCry Group Custom Colors - Extended */
+  --color-nocry-gold: var(--nocry-gold);
+  --color-nocry-goldDark: var(--nocry-gold-dark);
+  --color-nocry-text: var(--nocry-text);
+  --color-nocry-muted: var(--nocry-muted);
+  --color-nocry-card: var(--nocry-card);
+  --color-nocry-black: var(--nocry-black);
+
+  /* NoCry Shadows */
+  --shadow-nocry-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  /* NoCry Border Radius */
+  --radius-xl2: 16px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,8 +56,98 @@
   }
 }
 
+/* ============================================================================
+   Anti-Bleed: Evita fundo branco no overscroll/rubber-band
+   ============================================================================
+   NOTA: O gradiente dourado é fixed no AppShell. Para evitar que o 
+   overscroll (bounce/rubber-band em macOS/iOS) mostre fundo branco, 
+   definimos o body como preto absoluto.
+   ============================================================================ */
+
+html,
 body {
-  background: var(--background);
+  background-color: #000; /* fallback escuro (nunca branco) */
+  color-scheme: dark; /* melhora scrollbars e overscroll */
+  overscroll-behavior: none; /* evita "puxar" fundo do user agent */
+}
+
+body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+#root,
+#__next {
+  min-height: 100%;
+  background: transparent; /* não sobrepor o gradiente fixo */
+}
+
+/* ============================================================================
+   NoCry Finance - Glass Morphism Utilities
+   ============================================================================
+   Propósito: Classes utilitárias para efeito de "vidro" (glassmorphism).
+   
+   USO:
+   - .glass: Background translúcido com blur médio (cards padrão)
+   - .glass-strong: Background mais opaco com blur maior (sidebar, header)
+   
+   NOTA: backdrop-filter requer prefixo -webkit- para Safari.
+   ============================================================================ */
+
+.glass {
+  background: rgba(22, 22, 22, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.18);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.glass-strong {
+  background: rgba(22, 22, 22, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ============================================================================
+   NoCry Onboarding - Custom Animations
+   ============================================================================ */
+
+/* Reflexo metálico nos botões */
+@keyframes shine {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+/* Pulse glow para Ato V */
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(212, 175, 55, 0);
+  }
+  50% {
+    box-shadow: 0 0 120px rgba(212, 175, 55, 0.15) inset;
+  }
+}
+
+/* Utilitário para aplicar nas classes Tailwind */
+.animate-shine {
+  animation: shine 1.2s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
+
+/* Reduzir animações para usuários com preferência */
+@media (prefers-reduced-motion: reduce) {
+  .animate-shine,
+  .animate-pulse-glow {
+    animation: none;
+  }
 }

@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NoCry Finance
 
-## Getting Started
+Projeto Next.js para gestão financeira pessoal com foco em clareza e controle de gastos diários.
 
-First, run the development server:
+## Começando
 
+### 1. Instalação
+
+Clone o repositório e instale as dependências:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <URL_DO_REPOSITORIO>
+cd nocry-finance
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configuração do Ambiente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+O projeto utiliza variáveis de ambiente para se conectar ao Supabase e para habilitar ferramentas de desenvolvimento.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1.  **Crie o arquivo de ambiente local:**
+    Copie o arquivo `.env.example` para um novo arquivo chamado `.env.local`.
+    ```bash
+    cp .env.example .env.local
+    ```
+    *Nota: O arquivo `.env.local` é ignorado pelo Git por segurança.*
 
-## Learn More
+2.  **Preencha as variáveis:**
+    Abra o `.env.local` e substitua os placeholders pelas suas credenciais do Supabase:
+    - `NEXT_PUBLIC_SUPABASE_URL`: Encontrado em *Project Settings -> API -> Project URL*.
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Encontrado em *Project Settings -> API -> Project API Keys -> anon public*.
 
-To learn more about Next.js, take a look at the following resources:
+3.  **Ferramentas de Desenvolvimento (Opcional):**
+    Para habilitar páginas de auxílio ao desenvolvimento (como `/dev/seed`), mantenha a variável `NEXT_PUBLIC_DEV_TOOLS` como `"true"`. Em produção, remova esta variável ou defina-a como `"false"`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. Configuração do Supabase
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Para que a autenticação funcione corretamente:
 
-## Deploy on Vercel
+1.  **Habilite o Provedor de E-mail:**
+    - No seu Supabase Dashboard, vá para **Authentication -> Providers**.
+    - Encontre **Email** e habilite-o.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2.  **Configure a URL do Site:**
+    - Vá para **Authentication -> URL Configuration**.
+    - Defina o **Site URL** como `http://localhost:3000` para o ambiente de desenvolvimento. Isso é crucial para que os links de autenticação (Magic Link) redirecionem corretamente.
+    - *Dica: Ao testar o login, clique no link recebido por e-mail no mesmo navegador onde a aplicação está rodando.*
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Rode o Projeto
+
+Com tudo configurado, inicie o servidor de desenvolvimento:
+```bash
+npm run dev
+```
+A aplicação estará disponível em [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Rotas Principais
+
+- `/`: Dashboard principal com os indicadores financeiros (SDM e Disponível Hoje).
+- `/login`: Página de autenticação por e-mail (Magic Link).
+- `/onboarding`: Fluxo inicial para configuração da conta, cartões e contas fixas.
+- `/digital`: Dashboard de desempenho para produtos/serviços digitais.
+- `/digital/registrar`: Página para registro manual de gastos e vendas do módulo digital.
+- `/config`: Página de diagnóstico para verificar a conexão com o Supabase.
+- `/dev/seed`: (Apenas em desenvolvimento) Ferramenta para popular o banco de dados com dados de teste.
