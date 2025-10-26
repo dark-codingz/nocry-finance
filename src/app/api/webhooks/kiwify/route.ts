@@ -167,7 +167,7 @@ export async function POST(req: Request) {
     } catch (error: any) {
         console.error('Erro ao processar webhook da Kiwify:', error);
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: 'Payload inválido.', details: error.errors }, { status: 400 });
+            return NextResponse.json({ error: 'Payload inválido.', details: error.issues }, { status: 400 });
         }
         return NextResponse.json({ error: 'Erro interno no servidor.', message: error.message }, { status: 500 });
     }

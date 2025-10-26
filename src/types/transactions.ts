@@ -47,7 +47,7 @@ export const transactionSchema = z.object({
   // Campos Básicos
   // ─────────────────────────────────────────────────────────────────────
   type: z.enum(['expense', 'income', 'transfer'], {
-    errorMap: () => ({ message: 'Tipo inválido' }),
+    message: 'Tipo inválido',
   }),
 
   /**
@@ -92,7 +92,7 @@ export const transactionSchema = z.object({
   occurredAt: z.preprocess(
     (value) => (typeof value === 'string' ? new Date(value) : value),
     z.date({
-      errorMap: () => ({ message: 'Data inválida' }),
+      message: 'Data inválida',
     })
   ),
 

@@ -112,10 +112,8 @@ export async function POST(req: Request) {
     // ─────────────────────────────────────────────────────────────────────
     // 1. Verificar sessão do usuário (quem está fazendo a requisição)
     // ─────────────────────────────────────────────────────────────────────
-    // IMPORTANTE: `await cookies()` é obrigatório no Next.js App Router
-    const cookieStore = await cookies();
     const supabase = createRouteHandlerClient({ 
-      cookies: () => cookieStore 
+      cookies
     });
 
     // Busca o usuário autenticado
@@ -178,7 +176,7 @@ export async function POST(req: Request) {
     const parsed = BodySchema.safeParse(json);
 
     if (!parsed.success) {
-      const errors = parsed.error.errors.map((e) => e.message).join(', ');
+      const errors = parsed.error.issues.map((e) => e.message).join(', ');
       return NextResponse.json(
         { 
           ok: false, 

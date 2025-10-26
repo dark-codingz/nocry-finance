@@ -71,16 +71,16 @@ export async function getRecentActivity(
   const normalizedTransactions: RecentActivityItem[] = (transactions || []).map(t => ({
     id: t.id,
     kind: t.type as 'expense' | 'income' | 'transfer', // Confia no tipo do DB
-    title: t.description || (t.category_id as { name: string } | null)?.name || `Transação #${t.id.substring(0, 4)}`,
+    title: t.description || (t.category_id as any)?.name || `Transação #${t.id.substring(0, 4)}`,
     amountCents: t.amount_cents,
     occurredAtISO: new Date(t.created_at).toISOString(),
-    meta: { category: (t.category_id as { name: string } | null)?.name }
+    meta: { category: (t.category_id as any)?.name }
   }));
 
   const normalizedSales: RecentActivityItem[] = (sales || []).map(s => ({
     id: s.id,
     kind: 'sale',
-    title: `Venda - ${(s.offer_id as { name: string } | null)?.name || 'Oferta desconhecida'}`,
+    title: `Venda - ${(s.offer_id as any)?.name || 'Oferta desconhecida'}`,
     amountCents: s.amount_cents,
     occurredAtISO: new Date(s.date).toISOString(),
   }));
@@ -98,7 +98,7 @@ export async function getRecentActivity(
   const normalizedWorks: RecentActivityItem[] = (works || []).map(w => ({
     id: w.id,
     kind: 'work',
-    title: `Trabalho - ${(w.offer_id as { name: string } | null)?.name || 'Oferta desconhecida'}`,
+    title: `Trabalho - ${(w.offer_id as any)?.name || 'Oferta desconhecida'}`,
     occurredAtISO: new Date(w.started_at).toISOString(),
     meta: { duration_minutes: w.duration_minutes },
   }));

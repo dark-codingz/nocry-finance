@@ -86,8 +86,7 @@ export function getDisplayName(
  * ```
  */
 export async function getAuthUserAndProfile(): Promise<AuthUserAndProfile> {
-  const cookieStore = await cookies();
-  const sb = createServerComponentClient({ cookies: () => cookieStore });
+  const sb = createServerComponentClient({ cookies });
 
   // ─────────────────────────────────────────────────────────────────────
   // 1. VALIDAR USUÁRIO (com Auth server)
