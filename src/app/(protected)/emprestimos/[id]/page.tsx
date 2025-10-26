@@ -19,7 +19,9 @@ import { z } from 'zod';
 import { formatBRL } from '@/lib/money';
 import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
 import * as loansService from '@/services/loans';
-import type { LoanEventType } from '@/services/loans';
+
+// Deriva o tipo de evento do serviço
+type LoanEventType = loansService.LoanEvent['type'];
 
 // ============================================================================
 // Schema de Validação
