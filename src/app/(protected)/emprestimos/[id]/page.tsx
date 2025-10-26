@@ -20,15 +20,41 @@ import { formatBRL } from '@/lib/money';
 import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
 import * as loansService from '@/services/loans';
 
-// Deriva o tipo de evento do serviço
-type LoanEventType = loansService.LoanEvent['type'];
+// ============================================================================
+// Tipos Locais
+// ============================================================================
+
+const LOAN_EVENT_TYPES = ['principal', 'payment', 'interest', 'interest_payment'] as const;
+type LoanEventType = typeof LOAN_EVENT_TYPES[number];
+
+// ============================================================================
+// Função de Agregação
+// ============================================================================
+
+type Aggregates = {
+  borrowedCents: number;
+  paidCents: number;
+  interestCents: number;
+  remainingCents: number;
+};
+
+function computeAggregates(events: Array<{ type: LoanEventType; amount_cents: number }>): Aggregates {
+  let borrowed = 0, paid = 0, interest = 0;
+  for (const ev of events) {
+    if (ev.type === 'principal') borrowed += ev.amount_cents;
+    else if (ev.type === 'payment' || ev.type === 'interest_payment') paid += ev.amount_cents;
+    else if (ev.type === 'interest') interest += ev.amount_cents;
+  }
+  const remaining = Math.max(0, borrowed + interest - paid);
+  return { borrowedCents: borrowed, paidCents: paid, interestCents: interest, remainingCents: remaining };
+}
 
 // ============================================================================
 // Schema de Validação
 // ============================================================================
 
 const eventSchema = z.object({
-  type: z.enum(['topup', 'repayment', 'interest'], { required_error: 'Selecione um tipo' }),
+  type: z.enum(LOAN_EVENT_TYPES, { message: 'Selecione um tipo válido' }),
   amountCents: z.number().int().positive('O valor deve ser maior que zero'),
   occurredAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida (use YYYY-MM-DD)'),
   description: z.string().optional(),
@@ -76,7 +102,7 @@ export default function LoanDetailPage() {
   const form = useForm<EventFormData>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      type: 'topup',
+      type: 'principal',
       amountCents: 0,
       occurredAt: new Date().toISOString().slice(0, 10),
       description: '',
@@ -88,18 +114,21 @@ export default function LoanDetailPage() {
     mutationFn: async (data: EventFormData) => {
       if (!userId) throw new Error('Usuário não autenticado');
       
+      // Mapeia tipos locais para tipos do serviço
       const eventInput = {
         loan_id: loanId,
-        type: data.type as LoanEventType,
+        type: data.type === 'principal' ? 'topup' as any :
+              (data.type === 'payment' || data.type === 'interest_payment') ? 'repayment' as any :
+              'interest' as any,
         amount_cents: data.amountCents,
         occurred_at: data.occurredAt,
         notes: data.description || null,
       };
 
-      // Chama o método correto baseado no tipo
-      if (data.type === 'topup') {
+      // Chama método correto baseado no tipo
+      if (data.type === 'principal') {
         return await loansService.topupLoan(eventInput);
-      } else if (data.type === 'repayment') {
+      } else if (data.type === 'payment' || data.type === 'interest_payment') {
         return await loansService.repayLoan(eventInput);
       } else if (data.type === 'interest') {
         return await loansService.addInterest(eventInput);
@@ -111,7 +140,7 @@ export default function LoanDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['loans', userId] });
       await queryClient.invalidateQueries({ queryKey: ['loans', userId, loanId, 'timeline'] });
       form.reset({
-        type: 'topup',
+        type: 'principal',
         amountCents: 0,
         occurredAt: new Date().toISOString().slice(0, 10),
         description: '',
@@ -252,9 +281,10 @@ export default function LoanDetailPage() {
                   id="type"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  <option value="topup">➕ Novo Aporte (emprestei mais)</option>
-                  <option value="repayment">💰 Pagamento Recebido</option>
-                  <option value="interest">📈 Juros</option>
+                  <option value="principal">💸 Emprestei (principal)</option>
+                  <option value="payment">💰 Recebi Pagamento</option>
+                  <option value="interest">📈 Aplicar Juros</option>
+                  <option value="interest_payment">💵 Recebi Pagamento de Juros</option>
                 </select>
                 {form.formState.errors.type && (
                   <p className="mt-1 text-sm text-red-600">{form.formState.errors.type.message}</p>
@@ -348,7 +378,7 @@ export default function LoanDetailPage() {
                         <p className="text-sm text-gray-500">
                           {new Date(event.occurred_at + 'T00:00:00').toLocaleDateString('pt-BR')}
                         </p>
-                        {event.description && <p className="text-sm text-gray-600 mt-1 italic">{event.description}</p>}
+                        {event.notes && <p className="text-sm text-gray-600 mt-1 italic">{event.notes}</p>}
                       </div>
                     </div>
                   </div>
