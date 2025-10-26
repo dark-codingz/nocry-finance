@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { Suspense } from 'react';
 
 // ============================================================================
 // Página de Login - NoCry Group
@@ -49,10 +49,10 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 // ============================================================================
-// Componente Principal
+// Componente de Conteúdo (usa useSearchParams)
 // ============================================================================
 
-export default function LoginPage() {
+function LoginContent() {
   const supabase = useSupabaseClient();
   const session = useSession();
   const router = useRouter();
@@ -332,5 +332,24 @@ export default function LoginPage() {
         </div>
       )}
     </main>
+  );
+}
+
+// ============================================================================
+// Componente Principal (wrapper com Suspense)
+// ============================================================================
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-[#000000]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 text-[#D4AF37] animate-spin mx-auto" />
+          <p className="mt-4 text-[#CACACA] text-sm">Carregando...</p>
+        </div>
+      </main>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
