@@ -26,6 +26,9 @@ export default function CurrencyInputBRL({
   interpretPlainDigitsAsCents = false,
   ...rest
 }: Props) {
+  // ✅ Ref para rastrear o último valor emitido (evita loops)
+  const lastEmittedRef = React.useRef<number | null>(null);
+
   // ✅ valor de exibição: garantir que seja sempre válido
   const displayValue = React.useMemo(() => {
     if (typeof value === "number") {
@@ -56,13 +59,20 @@ export default function CurrencyInputBRL({
       valueIsNumericString={false}
       onValueChange={(vals) => {
         const { floatValue, value: raw } = vals;
+        let cents: number;
+
         if (interpretPlainDigitsAsCents) {
           // Remove tudo que não é dígito e trata como centavos
           const onlyDigits = raw.replace(/[^\d]/g, "");
-          const cents = onlyDigits.length ? parseInt(onlyDigits, 10) : 0;
-          onValueChange?.(Number.isFinite(cents) ? cents : 0);
+          cents = onlyDigits.length ? parseInt(onlyDigits, 10) : 0;
+          cents = Number.isFinite(cents) ? cents : 0;
         } else {
-          const cents = floatValue != null ? Math.round(floatValue * 100) : 0;
+          cents = floatValue != null ? Math.round(floatValue * 100) : 0;
+        }
+
+        // ✅ SÓ EMITIR SE O VALOR MUDOU (evita loop infinito)
+        if (cents !== lastEmittedRef.current) {
+          lastEmittedRef.current = cents;
           onValueChange?.(cents);
         }
       }}
