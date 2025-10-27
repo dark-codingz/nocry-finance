@@ -3,8 +3,8 @@ import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // GET /api/debug-insert?name=Alimentacao&type=expense
 export async function GET(req: Request) {
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 async function doInsert(name: string, type: string) {
   try {
     const cookieStore = await cookies();
-    const supabase = createServerClient(URL, KEY, {
+    const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
       cookies: {
         getAll() {
           return cookieStore.getAll();
