@@ -23,18 +23,26 @@ export default function CurrencyInputBRL({
   ...rest
 }: Props) {
   // ══════════════════════════════════════════════════════════════════════
-  // SOLUÇÃO MINIMALISTA - SEM useMemo, SEM useCallback desnecessário
+  // SOLUÇÃO: COPIAR ABORDAGEM DO CurrencyInput.tsx (QUE FUNCIONA!)
+  // Usar useState + useEffect para controlar o display
   // ══════════════════════════════════════════════════════════════════════
   
-  const lastEmittedRef = React.useRef<number>(-1);
+  // Estado local para exibição formatada (quebra o ciclo de re-renders)
+  const [displayValue, setDisplayValue] = React.useState<string>(() => {
+    if (typeof value === "number") {
+      return (value / 100).toFixed(2);
+    }
+    return "";
+  });
 
-  // Converter value (centavos) para displayValue (string formatada)
-  let displayValue = "";
-  if (typeof value === "number") {
-    displayValue = (value / 100).toFixed(2);
-  } else if (typeof value === "string" && value.trim() !== "") {
-    displayValue = value;
-  }
+  // Sincroniza displayValue APENAS quando value externo muda
+  React.useEffect(() => {
+    if (typeof value === "number") {
+      setDisplayValue((value / 100).toFixed(2));
+    } else if (value === 0 || value === "" || value === null || value === undefined) {
+      setDisplayValue("");
+    }
+  }, [value]);
 
   return (
     <NumericFormat
@@ -64,11 +72,8 @@ export default function CurrencyInputBRL({
           cents = floatValue != null ? Math.round(floatValue * 100) : 0;
         }
 
-        // SÓ emitir se mudou
-        if (cents !== lastEmittedRef.current) {
-          lastEmittedRef.current = cents;
-          onValueChange?.(cents);
-        }
+        // Emitir para o pai (React Hook Form controla a sincronização)
+        onValueChange?.(cents);
       }}
     />
   );
