@@ -6,7 +6,7 @@
 // ============================================================================
 
 import { cookies, headers } from "next/headers";
-import { createSupabaseServer } from "@/lib/supabase/server";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export default async function DebugSessionPage() {
   let sessionError = null;
   
   try {
-    const supabase = await createSupabaseServer();
+    const supabase = createServerComponentClient({ cookies });
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (session) {

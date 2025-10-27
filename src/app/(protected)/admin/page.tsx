@@ -22,9 +22,8 @@
 // 4. API route: Valida whitelist novamente + rate limit
 // ============================================================================
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createSupabaseServer } from "@/lib/supabase/server";
 import AdminClient from "./AdminClient";
 
 // Força sempre dinâmico (nunca cacheia)
@@ -36,11 +35,9 @@ export const runtime = "nodejs";
 
 export default async function AdminPage() {
   // ─────────────────────────────────────────────────────────────────────
-  // 1. Criar cliente Supabase server-side (cookies retorna Promise)
+  // 1. Criar cliente Supabase server-side
   // ─────────────────────────────────────────────────────────────────────
-  const supabase = createServerComponentClient({
-    cookies,
-  });
+  const supabase = await createSupabaseServer();
 
   // ─────────────────────────────────────────────────────────────────────
   // 2. Verificar sessão e obter usuário

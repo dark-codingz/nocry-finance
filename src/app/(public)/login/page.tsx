@@ -30,7 +30,7 @@ import React, { Suspense } from 'react';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSupabaseClient, useSession } from '@supabase/auth-helpers-react';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -53,10 +53,25 @@ type LoginFormData = z.infer<typeof loginSchema>;
 // ============================================================================
 
 function LoginContent() {
-  const supabase = useSupabaseClient();
-  const session = useSession();
+  const [supabase] = useState(() => createSupabaseBrowser());
+  const [session, setSession] = useState<any>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  // Verificar sessão no mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   // Estado para controle do modal "Esqueceu sua senha?"
   const [showForgotPasswordAlert, setShowForgotPasswordAlert] = useState(false);

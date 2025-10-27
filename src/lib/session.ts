@@ -8,8 +8,7 @@
 // - Usado em layouts e páginas para verificar auth + onboarding
 // ============================================================================
 
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export type UserProfile = {
   id: string;
@@ -86,7 +85,7 @@ export function getDisplayName(
  * ```
  */
 export async function getAuthUserAndProfile(): Promise<AuthUserAndProfile> {
-  const sb = createServerComponentClient({ cookies });
+  const sb = await createSupabaseServer();
 
   // ─────────────────────────────────────────────────────────────────────
   // 1. VALIDAR USUÁRIO (com Auth server)
