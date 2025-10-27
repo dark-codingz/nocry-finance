@@ -31,6 +31,13 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import * as crypto from 'crypto';
 import * as z from 'zod';
 
+// ============================================================================
+// Runtime Configuration
+// ============================================================================
+// Força o uso do runtime Node.js para garantir compatibilidade com crypto e
+// manipulação de cookies em ambientes serverless (Vercel)
+export const runtime = 'nodejs';
+
 // Schema Zod para validar a estrutura mínima do payload da Kiwify.
 const kiwifyPayloadSchema = z.object({
   order_id: z.string(),

@@ -40,6 +40,9 @@ import AppShell from "@/components/layout/AppShell";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Força runtime Node.js para garantir compatibilidade com cookies
+export const runtime = "nodejs";
+
 export default async function ProtectedLayout({ children }: { children: ReactNode }) {
   // ─────────────────────────────────────────────────────────────────────
   // 1. Obter usuário autenticado (usa getUser() - seguro no servidor)

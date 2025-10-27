@@ -31,6 +31,9 @@ import AdminClient from "./AdminClient";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+// Força runtime Node.js para garantir compatibilidade com cookies
+export const runtime = "nodejs";
+
 export default async function AdminPage() {
   // ─────────────────────────────────────────────────────────────────────
   // 1. Criar cliente Supabase server-side (cookies retorna Promise)
