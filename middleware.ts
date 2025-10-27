@@ -33,7 +33,17 @@ export const config = {
 // ============================================================================
 
 export async function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl;
+  const { pathname, search, searchParams } = req.nextUrl;
+
+  // ─────────────────────────────────────────────────────────────────────
+  // BYPASS para rotas de debug (evita loops e permite inspeção)
+  // ─────────────────────────────────────────────────────────────────────
+  if (pathname.startsWith('/_debug') || 
+      pathname.startsWith('/api/_debug') || 
+      searchParams.get('debug') === '1') {
+    console.log('[MW] 🔧 DEBUG BYPASS:', pathname);
+    return NextResponse.next();
+  }
 
   // ─────────────────────────────────────────────────────────────────────
   // LOG: Confirmar execução no terminal
@@ -68,13 +78,22 @@ export async function middleware(req: NextRequest) {
 
   // ─────────────────────────────────────────────────────────────────────
   // REGRA 1: Usuário LOGADO tentando acessar /login → manda para /
+  // NOTA: Evitar loop - só redireciona se NÃO vier de um redirect anterior
   // ─────────────────────────────────────────────────────────────────────
   if (isLogin && isLogged) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/';
-    url.search = '';
-    console.log('[MW] ↩️  redirect: /login -> / (já logado)');
-    return NextResponse.redirect(url);
+    const referer = req.headers.get('referer');
+    const isFromRedirect = referer?.includes('/login');
+    
+    // Evita loop: se já veio do /login, não redireciona novamente
+    if (!isFromRedirect) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/';
+      url.search = '';
+      console.log('[MW] ↩️  redirect: /login -> / (já logado)');
+      return NextResponse.redirect(url);
+    } else {
+      console.log('[MW] ⚠️  LOOP DETECTADO - permitindo acesso ao /login para evitar loop infinito');
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────
