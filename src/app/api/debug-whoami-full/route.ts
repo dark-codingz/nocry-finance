@@ -7,18 +7,55 @@ const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function GET() {
-  const h = headers();
-  const supabase = createServerClient(URL, KEY, {
-    headers: { get: (n: string) => h.get(n) ?? undefined },
-  });
+  try {
+    const h = headers();
+    const supabase = createServerClient(URL, KEY, {
+      headers: { get: (n: string) => h.get(n) ?? undefined },
+    });
 
-  const who = await supabase.rpc("debug_whoami").catch((e) => ({ data: null, error: e?.message }));
-  const { data: userData, error: uErr } = await supabase.auth.getUser();
+    // Tentar RPC whoami (pode não existir se migration não foi aplicada)
+    let whoamiData = null;
+    let whoamiError = null;
+    try {
+      const whoamiResult = await supabase.rpc("debug_whoami");
+      whoamiData = whoamiResult.data;
+      whoamiError = whoamiResult.error?.message ?? null;
+    } catch (e: any) {
+      whoamiError = `RPC failed: ${e?.message || String(e)}`;
+    }
 
-  return new Response(JSON.stringify({
-    whoami: who?.data ?? null,
-    getUserErr: uErr?.message ?? null,
-    user: userData?.user ?? null
-  }, null, 2), { status: 200, headers: { "content-type": "application/json" } });
+    // Tentar getUser
+    const { data: userData, error: uErr } = await supabase.auth.getUser();
+
+    return new Response(JSON.stringify({
+      ok: true,
+      whoami: {
+        data: whoamiData,
+        error: whoamiError
+      },
+      getUser: {
+        user: userData?.user ?? null,
+        error: uErr?.message ?? null
+      },
+      summary: {
+        authenticated: !!userData?.user,
+        whoami_available: whoamiError === null,
+        uid: userData?.user?.id ?? null
+      }
+    }, null, 2), { 
+      status: 200, 
+      headers: { "content-type": "application/json" } 
+    });
+
+  } catch (error: any) {
+    return new Response(JSON.stringify({
+      ok: false,
+      error: error?.message || String(error),
+      stack: error?.stack
+    }, null, 2), { 
+      status: 500, 
+      headers: { "content-type": "application/json" } 
+    });
+  }
 }
 

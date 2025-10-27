@@ -21,33 +21,78 @@ export async function POST(req: Request) {
 }
 
 async function doInsert(name: string, type: string) {
-  const h = headers();
-  const supabase = createServerClient(URL, KEY, {
-    headers: { get: (n: string) => h.get(n) ?? undefined },
-  });
+  try {
+    const h = headers();
+    const supabase = createServerClient(URL, KEY, {
+      headers: { get: (n: string) => h.get(n) ?? undefined },
+    });
 
-  const who = await supabase.rpc("debug_whoami").catch((e) => ({ data: null, error: e?.message }));
-  const { data: userData } = await supabase.auth.getUser();
+    // Tentar whoami (opcional)
+    let whoamiData = null;
+    try {
+      const whoamiResult = await supabase.rpc("debug_whoami");
+      whoamiData = whoamiResult.data;
+    } catch (e) {
+      // Ignorar erro de whoami (não é crítico)
+    }
 
-  if (!userData?.user) {
-    return new Response(JSON.stringify({ ok: false, step: "auth", whoami: who?.data ?? null, error: "Não autenticado" }, null, 2),
-      { status: 401, headers: { "content-type": "application/json" } });
+    // Verificar autenticação
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !userData?.user) {
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        step: "auth", 
+        whoami: whoamiData, 
+        error: userError?.message || "Não autenticado" 
+      }, null, 2), { status: 401, headers: { "content-type": "application/json" } });
+    }
+
+    // Validar campos
+    if (!name || !type) {
+      return new Response(JSON.stringify({ 
+        ok: false, 
+        step: "validate", 
+        error: "name e type são obrigatórios",
+        hint: "Use ?name=Teste&type=expense"
+      }, null, 2), { status: 400, headers: { "content-type": "application/json" } });
+    }
+
+    // Tentar INSERT
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({ name, type }) // DEFAULT preenche user_id
+      .select("id,name,type,user_id")
+      .single();
+
+    const status = error ? 400 : 201;
+    return new Response(JSON.stringify({
+      ok: !error, 
+      whoami: whoamiData, 
+      user: {
+        id: userData.user.id,
+        email: userData.user.email
+      },
+      sent: { name, type }, 
+      data, 
+      error: error?.message ?? null,
+      error_details: error ? {
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      } : null
+    }, null, 2), { status, headers: { "content-type": "application/json" } });
+
+  } catch (error: any) {
+    return new Response(JSON.stringify({
+      ok: false,
+      step: "exception",
+      error: error?.message || String(error),
+      stack: error?.stack
+    }, null, 2), { 
+      status: 500, 
+      headers: { "content-type": "application/json" } 
+    });
   }
-  if (!name || !type) {
-    return new Response(JSON.stringify({ ok: false, step: "validate", error: "name e type são obrigatórios" }, null, 2),
-      { status: 400, headers: { "content-type": "application/json" } });
-  }
-
-  const { data, error } = await supabase
-    .from("categories")
-    .insert({ name, type }) // DEFAULT preenche user_id
-    .select("id,name,type,user_id")
-    .single();
-
-  const status = error ? 400 : 201;
-  return new Response(JSON.stringify({
-    ok: !error, whoami: who?.data ?? null, user: userData.user,
-    sent: { name, type }, data, error: error?.message ?? null
-  }, null, 2), { status, headers: { "content-type": "application/json" } });
 }
 
