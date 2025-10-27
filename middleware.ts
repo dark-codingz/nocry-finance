@@ -33,7 +33,7 @@ export const config = {
 // ============================================================================
 
 export async function middleware(req: NextRequest) {
-  const { pathname, search, searchParams } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
 
   // ─────────────────────────────────────────────────────────────────────
   // BYPASS para rotas de debug (evita loops e permite inspeção)
@@ -53,10 +53,12 @@ export async function middleware(req: NextRequest) {
   console.log('[MW] 🔍 hit:', pathname);
 
   // ─────────────────────────────────────────────────────────────────────
-  // ⚠️ REDIRECTS TEMPORARIAMENTE DESATIVADOS (para debug de loop)
+  // ⚠️ ESTRATÉGIA ANTI-LOOP: SEM REDIRECTS NO MIDDLEWARE
   // ─────────────────────────────────────────────────────────────────────
-  // A autenticação está sendo feita no layout protegido via serverAuthGuard()
-  // O middleware apenas atualiza a sessão (refresh token se necessário)
+  // - Middleware APENAS atualiza sessão (refresh token se necessário)
+  // - Layout protegido redireciona para /login se NÃO autenticado
+  // - Página /login redireciona para / se JÁ autenticado
+  // - Resultado: sem ping-pong entre rotas
   // ─────────────────────────────────────────────────────────────────────
   
   const res = NextResponse.next();
@@ -78,13 +80,7 @@ export async function middleware(req: NextRequest) {
 
   const isLogged = !!session?.user?.id;
   console.log('[MW] 🔐 logged?', isLogged, '| path:', pathname);
-
-  // ─────────────────────────────────────────────────────────────────────
-  // NOTA: Redirects estão DESATIVADOS no middleware.
-  // A proteção de rotas é feita no layout server-side via serverAuthGuard().
-  // Isso evita loops de redirect entre middleware e layout.
-  // ─────────────────────────────────────────────────────────────────────
-
   console.log('[MW] ✅ allow (no redirects):', pathname);
+  
   return res;
 }

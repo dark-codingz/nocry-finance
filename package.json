@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "patch-package",
-    "patch:cookies": "node scripts/patch-cookies.js"
+    "patch:cookies": "node scripts/patch-next-cookies.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.0",
