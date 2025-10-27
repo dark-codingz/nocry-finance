@@ -46,16 +46,46 @@ WHERE tc.table_schema = 'public' AND tc.table_name = 'categories' AND tc.constra
 
 -- 1) Garantir coluna user_id com DEFAULT auth.uid()
 DO $$
+DECLARE
+  v_has_data boolean;
+  v_first_user_id uuid;
 BEGIN
+  -- Verificar se a tabela tem dados
+  SELECT EXISTS(SELECT 1 FROM public.categories LIMIT 1) INTO v_has_data;
+  
   -- Adicionar coluna se não existir
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema='public' AND table_name='categories' AND column_name='user_id'
   ) THEN
+    -- Adicionar coluna como NULLABLE primeiro
     ALTER TABLE public.categories
-    ADD COLUMN user_id uuid NOT NULL DEFAULT auth.uid();
+    ADD COLUMN user_id uuid;
     
-    RAISE NOTICE 'Coluna user_id adicionada com DEFAULT auth.uid()';
+    RAISE NOTICE 'Coluna user_id adicionada (NULLABLE)';
+    
+    -- Se houver dados existentes, precisamos popular user_id
+    IF v_has_data THEN
+      -- Tentar pegar o primeiro user_id da tabela auth.users
+      SELECT id INTO v_first_user_id FROM auth.users ORDER BY created_at LIMIT 1;
+      
+      IF v_first_user_id IS NOT NULL THEN
+        -- Atualizar todos os registros existentes com este user_id
+        UPDATE public.categories SET user_id = v_first_user_id WHERE user_id IS NULL;
+        RAISE NOTICE 'Dados existentes atualizados com user_id: %', v_first_user_id;
+      ELSE
+        -- Se não houver usuários, deletar as categorias órfãs
+        DELETE FROM public.categories WHERE user_id IS NULL;
+        RAISE NOTICE 'Categorias órfãs deletadas (não havia usuários na tabela auth.users)';
+      END IF;
+    END IF;
+    
+    -- Agora tornar NOT NULL e adicionar DEFAULT
+    ALTER TABLE public.categories
+    ALTER COLUMN user_id SET NOT NULL,
+    ALTER COLUMN user_id SET DEFAULT auth.uid();
+    
+    RAISE NOTICE 'Coluna user_id agora é NOT NULL com DEFAULT auth.uid()';
   ELSE
     -- Se existe mas não tem DEFAULT, adicionar
     IF NOT EXISTS (
@@ -170,15 +200,13 @@ RETURNS trigger LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  -- Se user_id não foi setado, usar auth.uid()
+  -- Se user_id não foi setado, tentar usar auth.uid()
   IF NEW.user_id IS NULL THEN
     NEW.user_id := auth.uid();
-    
-    -- Se ainda for NULL (usuário não autenticado), abortar
-    IF NEW.user_id IS NULL THEN
-      RAISE EXCEPTION 'Usuário não autenticado - user_id é obrigatório';
-    END IF;
   END IF;
+  
+  -- Se ainda for NULL, a constraint NOT NULL vai pegar
+  -- (não queremos falhar aqui no trigger, deixar o Postgres validar)
   
   RETURN NEW;
 END; $$;
