@@ -7,7 +7,7 @@
 // - Integração com RPC do Supabase
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Tipos
@@ -53,7 +53,7 @@ export interface InstallmentsResult {
 export async function createCardInstallments(
   input: CreateInstallmentsInput
 ): Promise<InstallmentsResult> {
-  const sb = createClientComponentClient();
+  const sb = createSupabaseBrowser();
 
   // Chamar RPC com parâmetro JSON único (sintaxe inline)
   const { data, error } = await sb.rpc('create_card_installments', {
@@ -79,7 +79,7 @@ export async function createCardInstallments(
 export async function listTransactionsByGroup(
   transferGroupId: string
 ): Promise<any[]> {
-  const sb = createClientComponentClient();
+  const sb = createSupabaseBrowser();
 
   const { data, error } = await sb
     .from('transactions')
