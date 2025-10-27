@@ -107,8 +107,9 @@ export async function createLoan(input: {
   principal_cents: number;
   started_at: string;
   notes?: string | null;
-  interest_mode?: 'none' | 'simple' | 'compound_monthly';
+  interest_mode?: 'none' | 'simple' | 'compound_monthly' | 'exact';
   interest_rate_bps?: number;
+  interest_exact_cents?: number;
 }) {
   const supabase = createClientComponentClient();
 
@@ -121,6 +122,7 @@ export async function createLoan(input: {
       notes: input.notes ?? null,
       interest_mode: input.interest_mode ?? 'none',
       interest_rate_bps: input.interest_rate_bps ?? 0,
+      interest_exact_cents: input.interest_exact_cents ?? 0,
     })
     .select()
     .single();
