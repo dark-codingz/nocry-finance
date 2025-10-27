@@ -21,30 +21,21 @@ export async function POST(req: Request) {
 }
 
 async function doInsert(name: string, type: string) {
-  const h = await headers();
+  const h = headers();
   const supabase = createServerClient(URL, KEY, {
-    cookies: {
-      get(name: string) {
-        return h.get('cookie')?.split('; ').find(c => c.startsWith(`${name}=`))?.split('=')[1];
-      },
-      set() {},
-      remove() {},
-    },
+    headers: { get: (n: string) => h.get(n) ?? undefined },
   });
 
   const who = await supabase.rpc("debug_whoami").catch((e) => ({ data: null, error: e?.message }));
   const { data: userData } = await supabase.auth.getUser();
+
   if (!userData?.user) {
-    return new Response(
-      JSON.stringify({ ok: false, step: "auth", whoami: who?.data ?? null, error: "Não autenticado" }, null, 2),
-      { status: 401, headers: { "content-type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ ok: false, step: "auth", whoami: who?.data ?? null, error: "Não autenticado" }, null, 2),
+      { status: 401, headers: { "content-type": "application/json" } });
   }
   if (!name || !type) {
-    return new Response(
-      JSON.stringify({ ok: false, step: "validate", error: "name e type são obrigatórios" }, null, 2),
-      { status: 400, headers: { "content-type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ ok: false, step: "validate", error: "name e type são obrigatórios" }, null, 2),
+      { status: 400, headers: { "content-type": "application/json" } });
   }
 
   const { data, error } = await supabase
@@ -54,13 +45,9 @@ async function doInsert(name: string, type: string) {
     .single();
 
   const status = error ? 400 : 201;
-  return new Response(
-    JSON.stringify(
-      { ok: !error, whoami: who?.data ?? null, user: userData.user, sent: { name, type }, data, error: error?.message ?? null },
-      null,
-      2
-    ),
-    { status, headers: { "content-type": "application/json" } }
-  );
+  return new Response(JSON.stringify({
+    ok: !error, whoami: who?.data ?? null, user: userData.user,
+    sent: { name, type }, data, error: error?.message ?? null
+  }, null, 2), { status, headers: { "content-type": "application/json" } });
 }
 
