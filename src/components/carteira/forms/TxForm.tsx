@@ -74,6 +74,7 @@ export default function TxForm({
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      amount_cents: 0, // ✅ Corrigido: valor inicial
       occurred_at: new Date().toISOString().split('T')[0],
     },
   });
@@ -154,9 +155,10 @@ export default function TxForm({
           control={control}
           render={({ field }) => (
             <CurrencyInputBRL
-              value={field.value}
+              value={typeof field.value === 'number' ? field.value : 0} // ✅ Garantir valor válido
               onValueChange={field.onChange}
               placeholder="R$ 0,00"
+              autoFocus
               className="w-full rounded-lg bg-transparent border border-white/10 px-3 py-2 text-white placeholder:text-[#9F9D9D] focus:border-white/20 transition-colors"
             />
           )}

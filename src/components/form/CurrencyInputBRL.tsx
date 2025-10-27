@@ -26,9 +26,16 @@ export default function CurrencyInputBRL({
   interpretPlainDigitsAsCents = false,
   ...rest
 }: Props) {
-  // valor de exibição: se receber centavos (number), converte para reais
-  const displayValue =
-    typeof value === "number" ? (value / 100).toFixed(2) : value;
+  // ✅ valor de exibição: garantir que seja sempre válido
+  const displayValue = React.useMemo(() => {
+    if (typeof value === "number") {
+      return (value / 100).toFixed(2);
+    }
+    if (typeof value === "string" && value.trim() !== "") {
+      return value;
+    }
+    return ""; // ✅ Retornar string vazia para campo limpo
+  }, [value]);
 
   return (
     <NumericFormat
