@@ -27,7 +27,7 @@ WHERE schemaname = 'public' AND tablename = 'categories';
 
 -- Ver policies existentes
 SELECT
-  polname, permissive, roles, cmd, qual, with_check
+  policyname, permissive, roles, cmd, qual, with_check
 FROM pg_policies
 WHERE schemaname = 'public' AND tablename = 'categories';
 
@@ -105,7 +105,7 @@ BEGIN
   -- Policy SELECT
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
-    WHERE schemaname='public' AND tablename='categories' AND polname='categories_select_own'
+    WHERE schemaname='public' AND tablename='categories' AND policyname='categories_select_own'
   ) THEN
     CREATE POLICY "categories_select_own"
     ON public.categories
@@ -120,7 +120,7 @@ BEGIN
   -- Policy INSERT
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
-    WHERE schemaname='public' AND tablename='categories' AND polname='categories_insert_own'
+    WHERE schemaname='public' AND tablename='categories' AND policyname='categories_insert_own'
   ) THEN
     CREATE POLICY "categories_insert_own"
     ON public.categories
@@ -135,7 +135,7 @@ BEGIN
   -- Policy UPDATE
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
-    WHERE schemaname='public' AND tablename='categories' AND polname='categories_update_own'
+    WHERE schemaname='public' AND tablename='categories' AND policyname='categories_update_own'
   ) THEN
     CREATE POLICY "categories_update_own"
     ON public.categories
@@ -151,7 +151,7 @@ BEGIN
   -- Policy DELETE
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies 
-    WHERE schemaname='public' AND tablename='categories' AND polname='categories_delete_own'
+    WHERE schemaname='public' AND tablename='categories' AND policyname='categories_delete_own'
   ) THEN
     CREATE POLICY "categories_delete_own"
     ON public.categories
