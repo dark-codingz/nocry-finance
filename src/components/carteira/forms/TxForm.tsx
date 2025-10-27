@@ -22,7 +22,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
 import { useCategoriesForSelect, useAccounts, useCards } from '@/hooks/finance/lookups';
 import { useQueryClient } from '@tanstack/react-query';
@@ -105,7 +105,7 @@ export default function TxForm({
         );
       } else {
         // Transação única (fluxo normal)
-        const supabase = createClientComponentClient();
+        const supabase = createSupabaseBrowser();
 
         const payload = {
           type: kind,

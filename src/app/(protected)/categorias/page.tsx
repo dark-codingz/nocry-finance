@@ -70,8 +70,8 @@ export default function CategoriesPage() {
       if (confirm(`Tem certeza que deseja ${isArchived ? 'restaurar' : 'arquivar'} esta categoria?`)) {
           startTransition(async () => {
             // Atualizar archived diretamente no Supabase (não via updateCategory)
-            const { createClientComponentClient } = await import('@supabase/auth-helpers-nextjs');
-            const supabase = createClientComponentClient();
+            const { createSupabaseBrowser } = await import('@/lib/supabase/client');
+            const supabase = createSupabaseBrowser();
             await supabase.from('categories').update({ archived: !isArchived }).eq('id', id);
             await loadCategories();
           });
