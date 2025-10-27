@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
@@ -22,9 +22,22 @@ export async function POST(req: Request) {
 
 async function doInsert(name: string, type: string) {
   try {
-    const h = headers();
+    const cookieStore = await cookies();
     const supabase = createServerClient(URL, KEY, {
-      headers: { get: (n: string) => h.get(n) ?? undefined },
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignorar erro em route handler
+          }
+        },
+      },
     });
 
     // Tentar whoami (opcional)
