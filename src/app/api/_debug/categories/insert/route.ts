@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
@@ -21,16 +21,28 @@ export async function POST(req: Request) {
 }
 
 async function doInsert(name: string, type: string) {
-  const h = headers();
+  const cookieStore = await cookies();
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_KEY, {
-    headers: { get: (n: string) => h.get(n) ?? undefined },
+    cookies: {
+      getAll() { return cookieStore.getAll(); },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        } catch {}
+      },
+    },
   });
 
-  const who = await supabase.rpc("debug_whoami").catch((e) => ({ data: null, error: e?.message }));
+  let whoamiData = null;
+  try {
+    const { data } = await supabase.rpc("debug_whoami");
+    whoamiData = data;
+  } catch {}
+
   const { data: userData } = await supabase.auth.getUser();
 
   if (!userData?.user) {
-    return new Response(JSON.stringify({ ok: false, step: "auth", whoami: who?.data ?? null, error: "Não autenticado" }, null, 2),
+    return new Response(JSON.stringify({ ok: false, step: "auth", whoami: whoamiData, error: "Não autenticado" }, null, 2),
       { status: 401, headers: { "content-type": "application/json" } });
   }
   if (!name || !type) {
@@ -46,7 +58,7 @@ async function doInsert(name: string, type: string) {
 
   const status = error ? 400 : 201;
   return new Response(JSON.stringify({
-    ok: !error, whoami: who?.data ?? null, user: userData.user,
+    ok: !error, whoami: whoamiData, user: userData.user,
     sent: { name, type }, data, error: error?.message ?? null
   }, null, 2), { status, headers: { "content-type": "application/json" } });
 }
