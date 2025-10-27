@@ -35,8 +35,18 @@ export default function CurrencyInputBRL({
     return "";
   });
 
-  // Sincroniza displayValue APENAS quando value externo muda
+  // Ref para rastrear último value processado (evita loops no useEffect)
+  const lastValueRef = React.useRef<number | string | null | undefined>(value);
+
+  // Sincroniza displayValue APENAS quando value externo REALMENTE muda
   React.useEffect(() => {
+    // ✅ SÓ atualizar se value mudou (evita loop)
+    if (lastValueRef.current === value) {
+      return;
+    }
+    
+    lastValueRef.current = value;
+    
     if (typeof value === "number") {
       setDisplayValue((value / 100).toFixed(2));
     } else if (value === 0 || value === "" || value === null || value === undefined) {
