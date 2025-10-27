@@ -12,7 +12,7 @@
 // - RLS garante que usuário só vê suas próprias categorias
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 export type Category = {
   id: string;
@@ -29,7 +29,7 @@ export async function listCategories(opts?: {
   q?: string;
   type?: 'expense' | 'income' | 'all';
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   let query = supabase
     .from('categories')
@@ -105,7 +105,7 @@ export async function updateCategory(
 // archiveCategory - Arquiva categoria (soft delete)
 // ────────────────────────────────────────────────────────────────────────
 export async function archiveCategory(id: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Soft delete: marca como arquivada
   const { error } = await supabase
