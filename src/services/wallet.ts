@@ -7,7 +7,7 @@
 // - Base para operações da carteira
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Tipos
@@ -45,7 +45,7 @@ export type Tx = {
 // listAccounts - Lista todas as contas do usuário
 // ────────────────────────────────────────────────────────────────────────────
 export async function listAccounts() {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   const { data, error } = await supabase
     .from('accounts')
     .select('*')
@@ -59,7 +59,7 @@ export async function listAccounts() {
 // listCards - Lista todos os cartões do usuário
 // ────────────────────────────────────────────────────────────────────────────
 export async function listCards() {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   const { data, error } = await supabase
     .from('cards')
     .select('*')
@@ -78,7 +78,7 @@ export async function listTransactions(params: {
   q?: string; // Busca por descrição
   limit?: number;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   let query = supabase
     .from('transactions')

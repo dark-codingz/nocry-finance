@@ -13,7 +13,7 @@
 // - Faturas são calculadas via view card_invoices_current
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 export type Card = {
   id: string;
@@ -29,7 +29,7 @@ export type Card = {
 // listCards - Lista cartões (com filtros)
 // ────────────────────────────────────────────────────────────────────────────
 export async function listCards(opts?: { q?: string }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   let query = supabase
     .from('cards')
@@ -57,7 +57,7 @@ export async function createCard(input: {
   due_day: number;
   limit_cents?: number | null;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('cards')
@@ -86,7 +86,7 @@ export async function updateCard(
     limit_cents?: number | null;
   }
 ) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('cards')
@@ -108,7 +108,7 @@ export async function updateCard(
 // deleteOrArchiveCard - Arquiva cartão (soft delete)
 // ────────────────────────────────────────────────────────────────────────────
 export async function deleteOrArchiveCard(id: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Soft delete: marca como arquivado
   const { error: upErr } = await supabase
@@ -140,7 +140,7 @@ export type CardInvoice = {
 };
 
 export async function listCurrentInvoices() {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('card_invoices_current')
@@ -154,7 +154,7 @@ export async function listCurrentInvoices() {
 // listCurrentInvoiceTransactions - Detalhes da fatura atual (transações)
 // ────────────────────────────────────────────────────────────────────────────
 export async function listCurrentInvoiceTransactions(card_id: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // 1) Buscar período do cartão na view
   const { data: period, error: e1 } = await supabase

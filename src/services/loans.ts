@@ -8,7 +8,7 @@
 // - Quitar/fechar empréstimos
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { LoanEventType, LOAN_EVENT_TYPES } from '@/domain/loans/eventTypes';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ export async function listLoans(filters: {
   status?: 'all' | 'active' | 'closed';
   q?: string;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   let query = supabase
     .from('loans_summary')
@@ -86,7 +86,7 @@ export async function listLoans(filters: {
 // listLoanEvents - Listar eventos/extrato de um empréstimo
 // ────────────────────────────────────────────────────────────────────────────
 export async function listLoanEvents(loan_id: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('loan_events')
@@ -111,7 +111,7 @@ export async function createLoan(input: {
   interest_rate_bps?: number;
   interest_exact_cents?: number;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // 1) Criar registro do empréstimo
   const { data: loan, error: loanError } = await supabase
@@ -147,7 +147,7 @@ export async function createLoan(input: {
 // topupLoan - Novo aporte (empréstimo adicional)
 // ────────────────────────────────────────────────────────────────────────────
 export async function topupLoan(input: LoanEventInput) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   const { error } = await supabase.from('loan_events').insert(input);
   if (error) throw error;
   return { ok: true };
@@ -157,7 +157,7 @@ export async function topupLoan(input: LoanEventInput) {
 // repayLoan - Registrar pagamento recebido
 // ────────────────────────────────────────────────────────────────────────────
 export async function repayLoan(input: LoanEventInput) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   const { error } = await supabase.from('loan_events').insert(input);
   if (error) throw error;
   return { ok: true };
@@ -167,7 +167,7 @@ export async function repayLoan(input: LoanEventInput) {
 // addInterest - Adicionar juros manual (ou presente)
 // ────────────────────────────────────────────────────────────────────────────
 export async function addInterest(input: LoanEventInput) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   const { error } = await supabase.from('loan_events').insert(input);
   if (error) throw error;
   return { ok: true };
@@ -177,7 +177,7 @@ export async function addInterest(input: LoanEventInput) {
 // applyInterestPeriod - Aplicar juros automáticos do período via RPC
 // ────────────────────────────────────────────────────────────────────────────
 export async function applyInterestPeriod(loan_id: string, untilISO: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { error } = await supabase.rpc('apply_monthly_interest', {
     p_loan_id: loan_id,
@@ -192,7 +192,7 @@ export async function applyInterestPeriod(loan_id: string, untilISO: string) {
 // closeLoan - Quitar/fechar empréstimo
 // ────────────────────────────────────────────────────────────────────────────
 export async function closeLoan(input: { id: string }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { error } = await supabase
     .from('loans')
@@ -216,7 +216,7 @@ export async function updateLoanConfig(
     interest_exact_cents: number; // ✅ Novo campo
   }>
 ) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { error } = await supabase.from('loans').update(input).eq('id', id);
 

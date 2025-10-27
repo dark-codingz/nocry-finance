@@ -12,7 +12,7 @@
 // - RLS garante que usuário só vê suas próprias contas
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 export type Account = {
   id: string;
@@ -26,7 +26,7 @@ export type Account = {
 // listAccounts - Lista contas (com filtros)
 // ────────────────────────────────────────────────────────────────────────────
 export async function listAccounts(opts?: { q?: string }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   let query = supabase
     .from('accounts')
@@ -52,7 +52,7 @@ export async function createAccount(input: {
   name: string;
   notes?: string | null;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('accounts')
@@ -75,7 +75,7 @@ export async function updateAccount(
   id: string,
   input: { name: string; notes?: string | null }
 ) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('accounts')
@@ -95,7 +95,7 @@ export async function updateAccount(
 // archiveAccount - Arquiva conta (soft delete)
 // ────────────────────────────────────────────────────────────────────────────
 export async function archiveAccount(id: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Soft delete: marca como arquivada
   const { error } = await supabase

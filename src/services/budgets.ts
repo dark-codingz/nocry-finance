@@ -9,7 +9,7 @@
 // ============================================================================
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 import dayjs from 'dayjs';
 
 // Propósito: Centralizar as operações de leitura e escrita de orçamentos mensais.
@@ -128,7 +128,7 @@ export async function setBudget(
  * ```
  */
 export async function getBudgetForMonth(monthKey?: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   const key = monthKey ?? dayjs().format('YYYY-MM');
   
   return await supabase
@@ -166,7 +166,7 @@ export async function saveBudget({
   amountCents: number; 
   monthKey?: string; 
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   
   // Usar mês atual se não fornecido
   const key = monthKey ?? dayjs().format('YYYY-MM');

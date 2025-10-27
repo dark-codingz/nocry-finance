@@ -19,7 +19,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { CreateTransactionInput } from '@/types/transactions';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 const emptyToNull = <T extends string | null | undefined>(v: T) =>
   (v === "" || v === undefined ? null : v);
@@ -441,7 +441,7 @@ export async function createSimpleTransaction(input: {
   card_id?: string | null;
   category_id: string;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
   
   // Validações básicas
   if (input.amount_cents <= 0) {
@@ -494,7 +494,7 @@ export async function transfer(input: {
   occurred_at: string; // YYYY-MM-DD
   description?: string | null;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Validações
   if (input.amount_cents <= 0) {
@@ -551,7 +551,7 @@ export async function transfer(input: {
  * Por ora, apenas chama RPC que deve existir no Supabase.
  */
 export async function launchFixedForMonth(opts: { monthISO: string }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Tenta chamar RPC (assumindo que existe)
   const { data, error } = await supabase.rpc('launch_fixed_for_month', {
@@ -574,7 +574,7 @@ export async function launchFixedForMonth(opts: { monthISO: string }) {
 // NOTA: Se a RPC não existir, use a função runFixedForMonth existente:
 // import { runFixedForMonth } from './fixedBills';
 // export async function launchFixedForMonth(opts: { monthISO: string }) {
-//   const supabase = createClientComponentClient();
+//   const supabase = createSupabaseBrowser();
 //   const { data: { user } } = await supabase.auth.getUser();
 //   if (!user) throw new Error('Usuário não autenticado');
 //   return runFixedForMonth(supabase, user.id, opts.monthISO);

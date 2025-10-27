@@ -7,7 +7,7 @@
 // - Integração com RPC do Supabase
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Tipos
@@ -38,7 +38,7 @@ export type PfMonthlyRow = {
 export async function getPfMonthlySeries(
   monthsBack: number = 12
 ): Promise<PfMonthlyRow[]> {
-  const sb = createClientComponentClient();
+  const sb = createSupabaseBrowser();
 
   const { data, error } = await sb.rpc('pf_monthly_series', {
     p_months_back: monthsBack,
@@ -97,7 +97,7 @@ export async function getNetByPeriod(
   date_from: string,
   date_to: string
 ): Promise<NetByPeriodRow> {
-  const sb = createClientComponentClient();
+  const sb = createSupabaseBrowser();
 
   // Validar datas antes de enviar
   date_from = ensureISO(date_from);

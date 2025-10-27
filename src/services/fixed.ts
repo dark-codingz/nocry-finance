@@ -12,7 +12,7 @@
 // - RLS garante que usuário só vê suas próprias contas fixas
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 export type FixedItem = {
   id: string;
@@ -35,7 +35,7 @@ export async function listFixed(opts?: {
   type?: 'all' | 'expense' | 'income';
   active?: 'all' | 'active' | 'inactive';
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   let query = supabase
     .from('fixed_bills')
@@ -80,7 +80,7 @@ export async function listFixed(opts?: {
 export async function createFixed(
   input: Omit<FixedItem, 'id' | 'created_at' | 'active'> & { active?: boolean }
 ) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('fixed_bills')
@@ -114,7 +114,7 @@ export async function updateFixed(
   id: string,
   input: Partial<Omit<FixedItem, 'id' | 'created_at'>>
 ) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Mapear due_day para day_of_month e active para is_active
   const mapped: any = { ...input };
@@ -148,7 +148,7 @@ export async function updateFixed(
 // toggleActive - Ativa/desativa conta fixa
 // ────────────────────────────────────────────────────────────────────────────
 export async function toggleActive(id: string, active: boolean) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { error } = await supabase
     .from('fixed_bills')
@@ -162,7 +162,7 @@ export async function toggleActive(id: string, active: boolean) {
 // removeFixed - Remove conta fixa
 // ────────────────────────────────────────────────────────────────────────────
 export async function removeFixed(id: string) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { error } = await supabase.from('fixed_bills').delete().eq('id', id);
 
@@ -176,7 +176,7 @@ export async function removeFixed(id: string) {
 // IDEMPOTENTE: Não cria duplicatas se já foram lançadas
 // ────────────────────────────────────────────────────────────────────────────
 export async function launchFixedForMonth(opts: { monthISO: string }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase.rpc('launch_fixed_for_month', {
     p_month: opts.monthISO,

@@ -12,7 +12,7 @@
 // - RLS garante que usuário só acessa seu próprio perfil
 // ============================================================================
 
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Tipos
@@ -29,7 +29,7 @@ export type Profile = {
 // getMyProfile - Busca perfil do usuário autenticado
 // ────────────────────────────────────────────────────────────────────────────
 export async function getMyProfile(): Promise<Profile | null> {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Buscar usuário autenticado
   const {
@@ -65,7 +65,7 @@ export async function upsertMyProfile(input: {
   display_name?: string | null;
   avatar_url?: string | null;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   // Buscar usuário autenticado
   const {
