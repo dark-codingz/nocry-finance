@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Habilitar source maps para debug em produção
+  productionBrowserSourceMaps: true,
+  
+  // Output standalone para melhor compatibilidade no Vercel
+  output: "standalone",
 };
 
 export default nextConfig;
