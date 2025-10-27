@@ -26,26 +26,34 @@ export default function CurrencyInputBRL({
   interpretPlainDigitsAsCents = false,
   ...rest
 }: Props) {
-  // ✅ Estado interno para controlar o valor (evita loops de re-render)
-  const [internalValue, setInternalValue] = React.useState<string>("");
-  const isControlledRef = React.useRef(false);
+  // ✅ Ref para rastrear último valor recebido (evita loops)
+  const lastValueRef = React.useRef<number | null>(null);
 
-  // ✅ Sincronizar com prop externa APENAS quando mudar externamente
-  React.useEffect(() => {
-    if (typeof value === "number") {
-      const formatted = (value / 100).toFixed(2);
-      setInternalValue(formatted);
-      isControlledRef.current = false;
-    } else if (typeof value === "string" && value.trim() !== "") {
-      setInternalValue(value);
-      isControlledRef.current = false;
-    } else if (value === 0 || value === "" || value === null || value === undefined) {
-      // ✅ Resetar apenas se for 0 ou vazio de fora
-      if (!isControlledRef.current) {
-        setInternalValue("");
-      }
+  // ✅ Converter centavos para string formatada
+  const getDisplayValue = React.useCallback((cents: number | string | null | undefined): string => {
+    if (typeof cents === "number") {
+      return (cents / 100).toFixed(2);
     }
-  }, [value]);
+    if (typeof cents === "string" && cents.trim() !== "") {
+      return cents;
+    }
+    return "";
+  }, []);
+
+  // ✅ Valor controlado (sincronizado com prop)
+  const displayValue = React.useMemo(() => {
+    // ✅ Evitar loop: só atualizar se o valor REALMENTE mudou
+    if (typeof value === "number" && value !== lastValueRef.current) {
+      lastValueRef.current = value;
+      return getDisplayValue(value);
+    }
+    if (value === 0 || value === "" || value === null || value === undefined) {
+      lastValueRef.current = null;
+      return "";
+    }
+    // ✅ Manter valor anterior se não mudou
+    return getDisplayValue(lastValueRef.current);
+  }, [value, getDisplayValue]);
 
   const handleValueChange = React.useCallback(
     (vals: any) => {
@@ -60,11 +68,11 @@ export default function CurrencyInputBRL({
         cents = floatValue != null ? Math.round(floatValue * 100) : 0;
       }
 
-      // ✅ Marcar como controlado internamente
-      isControlledRef.current = true;
-
-      // ✅ Emitir para o pai
-      onValueChange?.(cents);
+      // ✅ SÓ emitir se mudou
+      if (cents !== lastValueRef.current) {
+        lastValueRef.current = cents;
+        onValueChange?.(cents);
+      }
     },
     [onValueChange, interpretPlainDigitsAsCents]
   );
@@ -72,7 +80,7 @@ export default function CurrencyInputBRL({
   return (
     <NumericFormat
       {...rest}
-      value={internalValue}
+      value={displayValue}
       name={name}
       id={id}
       placeholder={placeholder}
