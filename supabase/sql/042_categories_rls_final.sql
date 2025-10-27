@@ -65,21 +65,26 @@ BEGIN
   END IF;
 END $$;
 
--- Remover FK antiga
-ALTER TABLE public.categories DROP CONSTRAINT IF EXISTS categories_user_id_fkey;
-
--- Recriar FK correta
-ALTER TABLE public.categories
-  ADD CONSTRAINT categories_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-RAISE NOTICE '✅ FK categories_user_id_fkey criada/atualizada';
+-- Remover FK antiga e recriar
+DO $$
+BEGIN
+  ALTER TABLE public.categories DROP CONSTRAINT IF EXISTS categories_user_id_fkey;
+  
+  ALTER TABLE public.categories
+    ADD CONSTRAINT categories_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+  
+  RAISE NOTICE '✅ FK categories_user_id_fkey criada/atualizada';
+END $$;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 2) HABILITAR RLS
 -- ────────────────────────────────────────────────────────────────────────────
-ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
-RAISE NOTICE '✅ RLS habilitado';
+DO $$
+BEGIN
+  ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+  RAISE NOTICE '✅ RLS habilitado';
+END $$;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 3) LIMPAR POLICIES ANTIGAS E RECRIAR
@@ -98,24 +103,27 @@ BEGIN
 END $$;
 
 -- Recriar policies (PERMISSIVE)
-CREATE POLICY "categories_select_own"
-  ON public.categories FOR SELECT
-  USING (user_id = auth.uid());
+DO $$
+BEGIN
+  CREATE POLICY "categories_select_own"
+    ON public.categories FOR SELECT
+    USING (user_id = auth.uid());
 
-CREATE POLICY "categories_insert_own"
-  ON public.categories FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  CREATE POLICY "categories_insert_own"
+    ON public.categories FOR INSERT
+    WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "categories_update_own"
-  ON public.categories FOR UPDATE
-  USING (user_id = auth.uid())
-  WITH CHECK (user_id = auth.uid());
+  CREATE POLICY "categories_update_own"
+    ON public.categories FOR UPDATE
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "categories_delete_own"
-  ON public.categories FOR DELETE
-  USING (user_id = auth.uid());
+  CREATE POLICY "categories_delete_own"
+    ON public.categories FOR DELETE
+    USING (user_id = auth.uid());
 
-RAISE NOTICE '✅ 4 policies criadas (SELECT/INSERT/UPDATE/DELETE)';
+  RAISE NOTICE '✅ 4 policies criadas (SELECT/INSERT/UPDATE/DELETE)';
+END $$;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 4) RPC DE DEBUG (whoami)
@@ -136,7 +144,10 @@ $$;
 
 COMMENT ON FUNCTION public.debug_whoami() IS 'Debug: retorna uid e role do request atual';
 
-RAISE NOTICE '✅ RPC debug_whoami() criada';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ RPC debug_whoami() criada';
+END $$;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 5) VERIFICAÇÃO FINAL
