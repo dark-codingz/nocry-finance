@@ -62,7 +62,7 @@ export async function createCategory(input: {
   name: string;
   type: 'expense' | 'income';
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('categories')
@@ -85,7 +85,7 @@ export async function updateCategory(
   id: string,
   input: { name: string; type: 'expense' | 'income' }
 ) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
     .from('categories')
