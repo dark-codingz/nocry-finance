@@ -16,7 +16,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Types
@@ -82,7 +82,7 @@ export function useTransactions(filters: TxFilters) {
   return useQuery({
     queryKey: ['transactions', { ...filters, page, pageSize }],
     queryFn: async (): Promise<TxQueryResult> => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
 
       // ──────────────────────────────────────────────────────────────
       // Query principal (lista paginada com joins)
@@ -207,7 +207,7 @@ export function useDeleteTransaction() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
 
       const { error } = await supabase
         .from('transactions')
@@ -234,7 +234,7 @@ export function useToggleReconciled() {
 
   return useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
 
       const { error } = await supabase
         .from('transactions')

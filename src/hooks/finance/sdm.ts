@@ -27,7 +27,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────────
 // Helper: Log de erros apenas em desenvolvimento
@@ -46,7 +46,7 @@ export function useSaldoLiquido() {
   return useQuery({
     queryKey: ['pf-month-summary'],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase
         .from('pf_month_summary')
         .select('*')
@@ -80,7 +80,7 @@ export function useFixedRemaining() {
   return useQuery({
     queryKey: ['pf-fixed-remaining'],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase
         .from('pf_fixed_remaining_current_month')
         .select('*')
@@ -117,7 +117,7 @@ export function useInvoicesDueThisMonth() {
   return useQuery({
     queryKey: ['pf-card-invoices-due-this-month'],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase
         .from('pf_card_invoices_due_this_month')
         .select('*')
@@ -158,7 +158,7 @@ export function useCurrentInvoicesTotal() {
   return useQuery({
     queryKey: ['pf-card-invoices-current-total'],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase
         .from('card_invoices_current')
         .select('amount_cents');

@@ -19,7 +19,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
 
 // ────────────────────────────────────────────────────────────────────────
 // useAccounts - Lista todas as contas
@@ -28,7 +28,7 @@ export function useAccounts() {
   return useQuery({
     queryKey: ['accounts'],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase
         .from('accounts')
         .select('id, name')
@@ -48,7 +48,7 @@ export function useCards() {
   return useQuery({
     queryKey: ['cards'],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase
         .from('cards')
         .select('id, name')
@@ -69,7 +69,7 @@ export function useCategoriesForSelect(kind?: 'expense' | 'income') {
   return useQuery({
     queryKey: ['categories-select', kind],
     queryFn: async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createSupabaseBrowser();
 
       let query = supabase
         .from('categories')
