@@ -23,8 +23,8 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 // exceto APIs, assets do Next e favicon.
 export const config = {
   matcher: [
-    // Tudo, menos /api, /_next/static, /_next/image, /favicon.ico
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    // Tudo, menos /api, /_next/static, /_next/image, /favicon.ico, /debug
+    '/((?!api|_next/static|_next/image|favicon.ico|debug).*)',
   ],
 };
 
@@ -38,8 +38,9 @@ export async function middleware(req: NextRequest) {
   // ─────────────────────────────────────────────────────────────────────
   // BYPASS para rotas de debug (evita loops e permite inspeção)
   // ─────────────────────────────────────────────────────────────────────
-  if (pathname.startsWith('/_debug') || 
-      pathname.startsWith('/api/_debug') || 
+  if (pathname.startsWith('/debug') || 
+      pathname.startsWith('/api/_debug') ||
+      pathname.startsWith('/api/_health') ||
       searchParams.get('debug') === '1') {
     console.log('[MW] 🔧 DEBUG BYPASS:', pathname);
     return NextResponse.next();
@@ -77,24 +78,12 @@ export async function middleware(req: NextRequest) {
   console.log('[MW] 🔐 logged?', isLogged, '| path:', pathname);
 
   // ─────────────────────────────────────────────────────────────────────
-  // REGRA 1: Usuário LOGADO tentando acessar /login → manda para /
-  // NOTA: Evitar loop - só redireciona se NÃO vier de um redirect anterior
+  // REGRA 1: Usuário LOGADO tentando acessar /login → NÃO redireciona aqui
+  // NOTA: O redirect será feito no client-side (página de login)
+  // Isso evita loop infinito com o middleware
   // ─────────────────────────────────────────────────────────────────────
-  if (isLogin && isLogged) {
-    const referer = req.headers.get('referer');
-    const isFromRedirect = referer?.includes('/login');
-    
-    // Evita loop: se já veio do /login, não redireciona novamente
-    if (!isFromRedirect) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/';
-      url.search = '';
-      console.log('[MW] ↩️  redirect: /login -> / (já logado)');
-      return NextResponse.redirect(url);
-    } else {
-      console.log('[MW] ⚠️  LOOP DETECTADO - permitindo acesso ao /login para evitar loop infinito');
-    }
-  }
+  // REMOVIDO: redirect de /login -> / quando logado (causa loop)
+  // Deixar a página de login lidar com isso no client-side
 
   // ─────────────────────────────────────────────────────────────────────
   // REGRA 2: Usuário NÃO LOGADO em rota privada → manda para /login?next=<rota>
