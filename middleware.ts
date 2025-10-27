@@ -39,6 +39,7 @@ export async function middleware(req: NextRequest) {
   // BYPASS para rotas de debug (evita loops e permite inspeção)
   // ─────────────────────────────────────────────────────────────────────
   if (pathname.startsWith('/debug') || 
+      pathname.startsWith('/_debug') ||
       pathname.startsWith('/api/_debug') ||
       pathname.startsWith('/api/_health') ||
       searchParams.get('debug') === '1') {
@@ -52,19 +53,20 @@ export async function middleware(req: NextRequest) {
   console.log('[MW] 🔍 hit:', pathname);
 
   // ─────────────────────────────────────────────────────────────────────
-  // Identificar rotas públicas (não exigem auth no middleware)
+  // ⚠️ REDIRECTS TEMPORARIAMENTE DESATIVADOS (para debug de loop)
   // ─────────────────────────────────────────────────────────────────────
-  const isLogin = pathname === '/login';
-  const isOnboarding = pathname === '/onboarding';
-  const isPublicRoute = isLogin || isOnboarding;
+  // A autenticação está sendo feita no layout protegido via serverAuthGuard()
+  // O middleware apenas atualiza a sessão (refresh token se necessário)
+  // ─────────────────────────────────────────────────────────────────────
+  
   const res = NextResponse.next();
 
   // ─────────────────────────────────────────────────────────────────────
-  // Criar cliente Supabase na middleware (usa cookies/sign/refresh)
+  // Criar cliente Supabase na middleware (atualiza cookies/refresh token)
   // ─────────────────────────────────────────────────────────────────────
   const supabase = createMiddlewareClient({ req, res });
 
-  // Obter sessão atual
+  // Obter sessão atual (isso força refresh do token se necessário)
   const {
     data: { session },
     error,
@@ -78,29 +80,11 @@ export async function middleware(req: NextRequest) {
   console.log('[MW] 🔐 logged?', isLogged, '| path:', pathname);
 
   // ─────────────────────────────────────────────────────────────────────
-  // REGRA 1: Usuário LOGADO tentando acessar /login → NÃO redireciona aqui
-  // NOTA: O redirect será feito no client-side (página de login)
-  // Isso evita loop infinito com o middleware
+  // NOTA: Redirects estão DESATIVADOS no middleware.
+  // A proteção de rotas é feita no layout server-side via serverAuthGuard().
+  // Isso evita loops de redirect entre middleware e layout.
   // ─────────────────────────────────────────────────────────────────────
-  // REMOVIDO: redirect de /login -> / quando logado (causa loop)
-  // Deixar a página de login lidar com isso no client-side
 
-  // ─────────────────────────────────────────────────────────────────────
-  // REGRA 2: Usuário NÃO LOGADO em rota privada → manda para /login?next=<rota>
-  // NOTA: /login e /onboarding são públicas, mas /onboarding exige auth internamente
-  // ─────────────────────────────────────────────────────────────────────
-  if (!isPublicRoute && !isLogged) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/login';
-    const nextParam = pathname + (search || '');
-    url.searchParams.set('next', nextParam);
-    console.log('[MW] 🚫 redirect: anon -> /login?next=', nextParam);
-    return NextResponse.redirect(url);
-  }
-
-  // ─────────────────────────────────────────────────────────────────────
-  // CASO NORMAL: Seguir com a requisição
-  // ─────────────────────────────────────────────────────────────────────
-  console.log('[MW] ✅ allow:', pathname);
+  console.log('[MW] ✅ allow (no redirects):', pathname);
   return res;
 }

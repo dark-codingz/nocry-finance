@@ -33,6 +33,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { serverAuthGuard } from "@/lib/auth/guard";
 import { getAuthUserAndProfile } from "@/lib/session";
 import AppShell from "@/components/layout/AppShell";
 
@@ -45,20 +46,26 @@ export const runtime = "nodejs";
 
 export default async function ProtectedLayout({ children }: { children: ReactNode }) {
   // ─────────────────────────────────────────────────────────────────────
-  // 1. Obter usuário autenticado (usa getUser() - seguro no servidor)
+  // 1. Obter usuário autenticado usando o guard (usa getUser() - seguro)
   // ─────────────────────────────────────────────────────────────────────
-  const { user, profile } = await getAuthUserAndProfile();
+  const { user, source, errorReason, session } = await serverAuthGuard();
 
   // ─────────────────────────────────────────────────────────────────────
   // 2. Se não há usuário autenticado, redirecionar para login
   // ─────────────────────────────────────────────────────────────────────
   if (!user) {
     console.log("[ProtectedLayout] 🚫 Não autenticado, redirect para /login");
+    console.log("[ProtectedLayout] 🔍 Debug:", { source, errorReason, hasSession: !!session });
     redirect("/login");
   }
 
   // ─────────────────────────────────────────────────────────────────────
-  // 3. Obter pathname atual para verificar exceções
+  // 3. Obter profile do usuário (para verificar onboarding)
+  // ─────────────────────────────────────────────────────────────────────
+  const { profile } = await getAuthUserAndProfile();
+
+  // ─────────────────────────────────────────────────────────────────────
+  // 4. Obter pathname atual para verificar exceções
   // ─────────────────────────────────────────────────────────────────────
   let currentPath = "/";
   try {
@@ -77,13 +84,13 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   }
 
   // ─────────────────────────────────────────────────────────────────────
-  // 4. Rotas que NÃO exigem onboarding completado
+  // 5. Rotas que NÃO exigem onboarding completado
   // ─────────────────────────────────────────────────────────────────────
   const onboardingExceptions = ["/config", "/admin"];
   const isException = onboardingExceptions.some(path => currentPath.startsWith(path));
 
   // ─────────────────────────────────────────────────────────────────────
-  // 5. Se onboarding não foi completado E não é exceção → redirect
+  // 6. Se onboarding não foi completado E não é exceção → redirect
   // ─────────────────────────────────────────────────────────────────────
   if (!profile?.onboarding_done && !isException) {
     console.log("[ProtectedLayout] 🚀 Onboarding pendente, redirect para /onboarding");
@@ -95,9 +102,17 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   }
 
   // ─────────────────────────────────────────────────────────────────────
-  // 6. Usuário autenticado (+ onboarding OK ou exceção): renderiza com AppShell
+  // 7. Usuário autenticado (+ onboarding OK ou exceção): renderiza com AppShell
   // ─────────────────────────────────────────────────────────────────────
-  console.log("[ProtectedLayout] ✅ Acesso liberado para:", user.email);
+  console.log("[ProtectedLayout] ✅ Acesso liberado para:", user.email, "| via:", source);
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <div suppressHydrationWarning>
+      {/* Painel de Debug - Remover após confirmar que funciona */}
+      <div style={{fontFamily:"monospace",fontSize:12,background:"#111",color:"#0f0",padding:8}}>
+        <b>Auth OK</b> • user: {user?.id} • via: {source} • sess?: {session ? "yes" : "no"} • err: {errorReason ?? "-"}
+      </div>
+      <AppShell>{children}</AppShell>
+    </div>
+  );
 }
