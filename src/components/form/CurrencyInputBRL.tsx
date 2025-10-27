@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { NumericFormat, NumericFormatProps } from "react-number-format";
+import { formatBRL, parseBRL } from "@/lib/money";
 
 type Props = {
   value?: number | string;
@@ -9,82 +9,64 @@ type Props = {
   id?: string;
   placeholder?: string;
   className?: string;
-  interpretPlainDigitsAsCents?: boolean;
-} & Omit<NumericFormatProps, "onValueChange" | "value" | "thousandSeparator" | "decimalSeparator" | "prefix" | "decimalScale" | "fixedDecimalScale" | "isNumericString">;
+  autoFocus?: boolean;
+  disabled?: boolean;
+};
 
+/**
+ * CurrencyInputBRL - Input de moeda BRL (SEM NumericFormat para evitar loops)
+ * 
+ * ABORDAGEM MINIMALISTA:
+ * - Input nativo controlado
+ * - formatBRL/parseBRL do @/lib/money
+ * - Sem NumericFormat (causava loops)
+ * - Sem useEffect (causava loops)
+ * - Funciona EXATAMENTE como CurrencyInput.tsx (provado funcionando)
+ */
 export default function CurrencyInputBRL({
   value,
   onValueChange,
   name,
   id,
-  placeholder = "0,00",
+  placeholder = "R$ 0,00",
   className,
-  interpretPlainDigitsAsCents = false,
-  ...rest
+  autoFocus,
+  disabled,
 }: Props) {
-  // ══════════════════════════════════════════════════════════════════════
-  // SOLUÇÃO: COPIAR ABORDAGEM DO CurrencyInput.tsx (QUE FUNCIONA!)
-  // Usar useState + useEffect para controlar o display
-  // ══════════════════════════════════════════════════════════════════════
-  
-  // Estado local para exibição formatada (quebra o ciclo de re-renders)
-  const [displayValue, setDisplayValue] = React.useState<string>(() => {
-    if (typeof value === "number") {
-      return (value / 100).toFixed(2);
-    }
-    return "";
+  // Estado local para exibição formatada
+  const [display, setDisplay] = React.useState<string>(() => {
+    const cents = typeof value === "number" ? value : 0;
+    return formatBRL(cents);
   });
 
-  // Ref para rastrear último value processado (evita loops no useEffect)
-  const lastValueRef = React.useRef<number | string | null | undefined>(value);
-
-  // Sincroniza displayValue APENAS quando value externo REALMENTE muda
+  // Sincronizar display quando value externo muda
   React.useEffect(() => {
-    // ✅ SÓ atualizar se value mudou (evita loop)
-    if (lastValueRef.current === value) {
-      return;
-    }
-    
-    lastValueRef.current = value;
-    
-    if (typeof value === "number") {
-      setDisplayValue((value / 100).toFixed(2));
-    } else if (value === 0 || value === "" || value === null || value === undefined) {
-      setDisplayValue("");
-    }
+    const cents = typeof value === "number" ? value : 0;
+    setDisplay(formatBRL(cents));
   }, [value]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const txt = e.target.value;
+    setDisplay(txt);
+    
+    // Converte texto BRL → centavos
+    const cents = parseBRL(txt);
+    onValueChange?.(cents);
+  };
+
   return (
-    <NumericFormat
-      {...rest}
-      value={displayValue}
-      name={name}
+    <input
+      type="text"
       id={id}
-      placeholder={placeholder}
-      thousandSeparator="."
-      decimalSeparator=","
-      decimalScale={2}
-      fixedDecimalScale
-      allowNegative={false}
-      prefix="R$ "
+      name={name}
       inputMode="decimal"
+      autoComplete="off"
+      autoFocus={autoFocus}
+      disabled={disabled}
       className={className}
-      valueIsNumericString={false}
-      onValueChange={(vals) => {
-        const { floatValue, value: raw } = vals;
-        let cents: number;
-
-        if (interpretPlainDigitsAsCents) {
-          const onlyDigits = raw.replace(/[^\d]/g, "");
-          cents = onlyDigits.length ? parseInt(onlyDigits, 10) : 0;
-          cents = Number.isFinite(cents) ? cents : 0;
-        } else {
-          cents = floatValue != null ? Math.round(floatValue * 100) : 0;
-        }
-
-        // Emitir para o pai (React Hook Form controla a sincronização)
-        onValueChange?.(cents);
-      }}
+      placeholder={placeholder}
+      value={display}
+      onChange={handleChange}
     />
   );
 }
