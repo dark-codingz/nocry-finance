@@ -26,24 +26,53 @@ export default function CurrencyInputBRL({
   interpretPlainDigitsAsCents = false,
   ...rest
 }: Props) {
-  // ✅ Ref para rastrear o último valor emitido (evita loops)
-  const lastEmittedRef = React.useRef<number | null>(null);
+  // ✅ Estado interno para controlar o valor (evita loops de re-render)
+  const [internalValue, setInternalValue] = React.useState<string>("");
+  const isControlledRef = React.useRef(false);
 
-  // ✅ valor de exibição: garantir que seja sempre válido
-  const displayValue = React.useMemo(() => {
+  // ✅ Sincronizar com prop externa APENAS quando mudar externamente
+  React.useEffect(() => {
     if (typeof value === "number") {
-      return (value / 100).toFixed(2);
+      const formatted = (value / 100).toFixed(2);
+      setInternalValue(formatted);
+      isControlledRef.current = false;
+    } else if (typeof value === "string" && value.trim() !== "") {
+      setInternalValue(value);
+      isControlledRef.current = false;
+    } else if (value === 0 || value === "" || value === null || value === undefined) {
+      // ✅ Resetar apenas se for 0 ou vazio de fora
+      if (!isControlledRef.current) {
+        setInternalValue("");
+      }
     }
-    if (typeof value === "string" && value.trim() !== "") {
-      return value;
-    }
-    return ""; // ✅ Retornar string vazia para campo limpo
   }, [value]);
+
+  const handleValueChange = React.useCallback(
+    (vals: any) => {
+      const { floatValue, value: raw } = vals;
+      let cents: number;
+
+      if (interpretPlainDigitsAsCents) {
+        const onlyDigits = raw.replace(/[^\d]/g, "");
+        cents = onlyDigits.length ? parseInt(onlyDigits, 10) : 0;
+        cents = Number.isFinite(cents) ? cents : 0;
+      } else {
+        cents = floatValue != null ? Math.round(floatValue * 100) : 0;
+      }
+
+      // ✅ Marcar como controlado internamente
+      isControlledRef.current = true;
+
+      // ✅ Emitir para o pai
+      onValueChange?.(cents);
+    },
+    [onValueChange, interpretPlainDigitsAsCents]
+  );
 
   return (
     <NumericFormat
       {...rest}
-      value={displayValue as any}
+      value={internalValue}
       name={name}
       id={id}
       placeholder={placeholder}
@@ -55,27 +84,8 @@ export default function CurrencyInputBRL({
       prefix="R$ "
       inputMode="decimal"
       className={className}
-      // Modo: nunca interpretar como string numérica pura (sempre formatar)
       valueIsNumericString={false}
-      onValueChange={(vals) => {
-        const { floatValue, value: raw } = vals;
-        let cents: number;
-
-        if (interpretPlainDigitsAsCents) {
-          // Remove tudo que não é dígito e trata como centavos
-          const onlyDigits = raw.replace(/[^\d]/g, "");
-          cents = onlyDigits.length ? parseInt(onlyDigits, 10) : 0;
-          cents = Number.isFinite(cents) ? cents : 0;
-        } else {
-          cents = floatValue != null ? Math.round(floatValue * 100) : 0;
-        }
-
-        // ✅ SÓ EMITIR SE O VALOR MUDOU (evita loop infinito)
-        if (cents !== lastEmittedRef.current) {
-          lastEmittedRef.current = cents;
-          onValueChange?.(cents);
-        }
-      }}
+      onValueChange={handleValueChange}
     />
   );
 }
