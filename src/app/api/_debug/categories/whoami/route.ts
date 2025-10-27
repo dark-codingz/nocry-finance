@@ -1,72 +1,33 @@
-import { createSupabaseServer } from "@/lib/supabase/server";
+import { headers } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
-/**
- * Rota de Debug - Whoami
- * 
- * Confirma se o token JWT chega corretamente ao servidor
- * 
- * Uso: GET /api/_debug/categories/whoami
- * 
- * Retorna:
- * - whoami: resultado do RPC debug_whoami() (uid, role, jwt claims)
- * - getUser: resultado de auth.getUser()
- * - user: dados do usuário autenticado
- */
+const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
 export async function GET() {
-  try {
-    const supabase = await createSupabaseServer();
+  const h = await headers();
+  const supabase = createServerClient(URL, KEY, {
+    cookies: {
+      get(name: string) {
+        return h.get('cookie')?.split('; ').find(c => c.startsWith(`${name}=`))?.split('=')[1];
+      },
+      set() {},
+      remove() {},
+    },
+  });
 
-    // 1) RPC whoami (verifica uid no contexto SQL)
-    const { data: whoamiData, error: whoamiError } = await supabase.rpc("debug_whoami");
-    
-    // 2) getUser (verifica token JWT no servidor)
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+  const who = await supabase.rpc("debug_whoami").catch((e) => ({ data: null, error: e?.message }));
+  const { data: userData, error: uErr } = await supabase.auth.getUser();
 
-    return new Response(
-      JSON.stringify(
-        {
-          timestamp: new Date().toISOString(),
-          whoami: {
-            data: whoamiData,
-            error: whoamiError?.message ?? null,
-          },
-          getUser: {
-            user: userData?.user ?? null,
-            error: userError?.message ?? null,
-          },
-          summary: {
-            authenticated: !!userData?.user,
-            uid_match: whoamiData?.uid === userData?.user?.id,
-            uid_present: !!whoamiData?.uid,
-          },
-        },
-        null,
-        2
-      ),
-      { 
-        status: 200, 
-        headers: { "content-type": "application/json" } 
-      }
-    );
-  } catch (error: any) {
-    return new Response(
-      JSON.stringify(
-        {
-          ok: false,
-          error: error?.message || String(error),
-          stack: error?.stack,
-        },
-        null,
-        2
-      ),
-      { 
-        status: 500, 
-        headers: { "content-type": "application/json" } 
-      }
-    );
-  }
+  return new Response(
+    JSON.stringify(
+      { whoami: who?.data ?? null, getUserErr: uErr?.message ?? null, user: userData?.user ?? null },
+      null,
+      2
+    ),
+    { status: 200, headers: { "content-type": "application/json" } }
+  );
 }
 
