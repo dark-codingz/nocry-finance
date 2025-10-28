@@ -77,20 +77,24 @@ function ensureISO(d?: string): string {
  * Busca receitas, despesas e líquido em um período específico.
  * Usado para o card "Saldo Líquido" do Dashboard com filtro de datas.
  * 
+ * REGIME DE CAIXA:
+ * - Busca todas as transações do período
+ * - Filtra NO FRONTEND para excluir compras de cartão (card_id IS NOT NULL)
+ * - Calcula no frontend (mais simples que mexer no SQL)
+ * 
  * ROBUSTEZ:
- * - Valida e normaliza datas antes de enviar
- * - Envia JSON único (evita problemas de ordem/cache)
- * - RPC trata NULL e inverte intervalo automaticamente
+ * - Valida e normaliza datas
  * - Sempre retorna valores (defaults para 0)
+ * - Não duplica despesas (compras de cartão ficam na "Fatura Atual")
  * 
  * @param date_from - Data inicial (YYYY-MM-DD)
  * @param date_to - Data final (YYYY-MM-DD)
- * @returns Receitas, despesas e líquido do período
+ * @returns Receitas, despesas e líquido do período (regime de caixa)
  * 
  * @example
  * ```ts
  * const data = await getNetByPeriod('2025-01-01', '2025-01-31');
- * // Retorna totais do período filtrado
+ * // Retorna totais do período (SEM compras de cartão)
  * ```
  */
 export async function getNetByPeriod(
@@ -103,21 +107,36 @@ export async function getNetByPeriod(
   date_from = ensureISO(date_from);
   date_to = ensureISO(date_to);
 
-  // Chamar RPC com parâmetro JSON único (sintaxe inline)
-  const { data, error } = await sb.rpc('pf_net_by_period', { p: { date_from, date_to } });
+  // Buscar TODAS as transações do período (income e expense)
+  const { data, error } = await sb
+    .from('transactions')
+    .select('type, amount_cents, card_id')
+    .in('type', ['income', 'expense']) // Ignora transfer
+    .gte('occurred_at', date_from)
+    .lte('occurred_at', date_to);
 
   if (error) {
-    // Propaga mensagem legível
-    throw new Error(error.message || 'Falha em pf_net_by_period');
+    throw new Error(error.message || 'Falha ao buscar transações');
   }
 
-  // data é um array com 1 linha (ou vazio)
-  const row = Array.isArray(data) ? data[0] : data;
+  // Calcular no frontend (REGIME DE CAIXA)
+  let total_income_cents = 0;
+  let total_expense_cents = 0;
+
+  (data || []).forEach(tx => {
+    if (tx.type === 'income') {
+      total_income_cents += tx.amount_cents;
+    } else if (tx.type === 'expense' && tx.card_id === null) {
+      // REGIME DE CAIXA: Só conta despesa se NÃO for cartão
+      // Compras de cartão ficam na "Fatura Atual"
+      total_expense_cents += tx.amount_cents;
+    }
+  });
 
   return {
-    total_income_cents: Number(row?.total_income_cents ?? 0),
-    total_expense_cents: Number(row?.total_expense_cents ?? 0),
-    net_cents: Number(row?.net_cents ?? 0),
+    total_income_cents,
+    total_expense_cents,
+    net_cents: total_income_cents - total_expense_cents,
   };
 }
 
