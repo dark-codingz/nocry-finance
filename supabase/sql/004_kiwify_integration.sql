@@ -39,3 +39,4 @@ COMMENT ON COLUMN public.offers.external_id IS 'ID do produto na plataforma exte
 
 
 
+

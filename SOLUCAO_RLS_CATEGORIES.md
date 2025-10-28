@@ -252,3 +252,4 @@ Após aplicar a nova migration:
 
 **Aplique a migration `041_categories_rls_simple.sql` e teste!** 🎉
 
+

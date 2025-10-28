@@ -34,3 +34,4 @@ export function createSupabaseBrowser() {
   return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
+

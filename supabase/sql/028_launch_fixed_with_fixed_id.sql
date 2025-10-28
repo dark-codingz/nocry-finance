@@ -135,3 +135,4 @@ GRANT EXECUTE ON FUNCTION public.launch_fixed_for_month(text) TO authenticated;
 
 
 
+

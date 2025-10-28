@@ -18,11 +18,7 @@ export async function POST(req: Request) {
   try {
     const supabase = await createSupabaseServer();
 
-    // 1) Debug: verificar quem é o usuário neste request
-    const { data: whoamiData } = await supabase.rpc("debug_whoami");
-    console.log("[POST /api/categories] whoami:", whoamiData);
-
-    // 2) Verificar autenticação
+    // 1) Verificar autenticação
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError || !user) {
@@ -31,7 +27,6 @@ export async function POST(req: Request) {
         JSON.stringify({ 
           ok: false, 
           error: "Não autenticado",
-          whoami: whoamiData,
         }),
         { 
           status: 401,
@@ -40,9 +35,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3) Validar body
+    // 2) Validar body
     const body = await req.json();
-    console.log("[POST /api/categories] Body recebido:", body);
 
     if (!body?.name || !body?.type) {
       return new Response(
@@ -73,18 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4) INSERT (OPÇÃO A: confiar no DEFAULT)
-    // const { data, error } = await supabase
-    //   .from("categories")
-    //   .insert({ 
-    //     name: body.name, 
-    //     type: body.type,
-    //     archived: false,
-    //   })
-    //   .select("id, name, type, user_id, created_at")
-    //   .single();
-
-    // 4) INSERT (OPÇÃO B: explicitar user_id no server - MAIS SEGURO)
+    // 3) INSERT com user_id do token
     const { data, error } = await supabase
       .from("categories")
       .insert({ 
@@ -105,8 +88,6 @@ export async function POST(req: Request) {
           code: error.code,
           details: error.details,
           hint: error.hint,
-          user_id: user.id,
-          whoami: whoamiData,
         }),
         { 
           status: 400,
@@ -115,16 +96,10 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("[POST /api/categories] Sucesso:", data);
-
     return new Response(
       JSON.stringify({ 
         ok: true, 
         data,
-        debug: {
-          user_id_match: data.user_id === user.id,
-          whoami: whoamiData,
-        },
       }),
       { 
         status: 201,
@@ -220,4 +195,5 @@ export async function GET() {
     );
   }
 }
+
 

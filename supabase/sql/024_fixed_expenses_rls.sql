@@ -68,3 +68,4 @@ comment on column public.fixed_expenses.active is
 
 
 
+

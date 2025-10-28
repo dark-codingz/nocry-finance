@@ -279,3 +279,4 @@ comment on function public.apply_monthly_interest(uuid, date) is
 
 
 
+

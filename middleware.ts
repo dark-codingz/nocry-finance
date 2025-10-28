@@ -10,7 +10,7 @@
 // 2. Usuário NÃO logado em qualquer rota (exceto /login) → redireciona para /login?next=<rota>
 // 3. Rotas sempre liberadas: /api/*, /_next/*, arquivos estáticos
 //
-// LOGS: Todos os acessos são logados no terminal para debug
+// LOGS: Todos os acessos são logados no terminal
 // ============================================================================
 
 import { NextResponse, type NextRequest } from 'next/server';
@@ -23,8 +23,8 @@ import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 // exceto APIs, assets do Next e favicon.
 export const config = {
   matcher: [
-    // Tudo, menos /api, /_next/static, /_next/image, /favicon.ico, /debug
-    '/((?!api|_next/static|_next/image|favicon.ico|debug).*)',
+    // Tudo, menos /api, /_next/static, /_next/image, /favicon.ico
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
 
@@ -33,19 +33,7 @@ export const config = {
 // ============================================================================
 
 export async function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
-
-  // ─────────────────────────────────────────────────────────────────────
-  // BYPASS para rotas de debug (evita loops e permite inspeção)
-  // ─────────────────────────────────────────────────────────────────────
-  if (pathname.startsWith('/debug') || 
-      pathname.startsWith('/_debug') ||
-      pathname.startsWith('/api/_debug') ||
-      pathname.startsWith('/api/_health') ||
-      searchParams.get('debug') === '1') {
-    console.log('[MW] 🔧 DEBUG BYPASS:', pathname);
-    return NextResponse.next();
-  }
+  const { pathname } = req.nextUrl;
 
   // ─────────────────────────────────────────────────────────────────────
   // LOG: Confirmar execução no terminal
