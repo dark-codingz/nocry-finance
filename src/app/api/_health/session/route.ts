@@ -16,8 +16,7 @@
 // }
 // ============================================================================
 
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createSupabaseServer } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 // Força runtime Node.js para garantir compatibilidade com cookies
@@ -32,7 +31,7 @@ export async function GET() {
     // ─────────────────────────────────────────────────────────────────────
     // 1. Criar cliente Supabase com cookies
     // ─────────────────────────────────────────────────────────────────────
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = await createSupabaseServer();
 
     // ─────────────────────────────────────────────────────────────────────
     // 2. Verificar sessão

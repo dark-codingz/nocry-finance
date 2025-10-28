@@ -31,9 +31,8 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
+import { createSupabaseServer } from '@/lib/supabase/server';
 import { createClient as createSupabaseAdmin } from '@supabase/supabase-js';
 
 // ============================================================================
@@ -112,9 +111,7 @@ export async function POST(req: Request) {
     // ─────────────────────────────────────────────────────────────────────
     // 1. Verificar sessão do usuário (quem está fazendo a requisição)
     // ─────────────────────────────────────────────────────────────────────
-    const supabase = createRouteHandlerClient({ 
-      cookies
-    });
+    const supabase = await createSupabaseServer();
 
     // Busca o usuário autenticado
     const {
