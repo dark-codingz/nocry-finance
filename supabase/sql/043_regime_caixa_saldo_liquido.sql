@@ -59,57 +59,15 @@ $$;
 COMMENT ON FUNCTION public.pf_net_by_period IS 
   'Calcula saldo líquido em REGIME DE CAIXA: exclui compras de cartão (card_id NOT NULL) para não duplicar despesas. Só abate quando a fatura for paga.';
 
--- ────────────────────────────────────────────────────────────────────────────
--- 2. Atualizar VIEW: pf_month_summary (Regime de Caixa)
--- ────────────────────────────────────────────────────────────────────────────
-CREATE OR REPLACE VIEW public.pf_month_summary AS
-WITH current_month AS (
-  SELECT (NOW() AT TIME ZONE 'America/Sao_Paulo')::DATE AS today
-),
-tx AS (
-  SELECT
-    t.user_id,
-    t.type,
-    t.amount_cents,
-    t.card_id,  -- Incluir card_id para filtrar
-    COALESCE(c.name, 'Sem Categoria') AS category_name,
-    t.occurred_at
-  FROM public.transactions t
-  LEFT JOIN public.categories c ON c.id = t.category_id
-  WHERE t.user_id = auth.uid()
-    AND t.type IN ('income','expense')
-    -- REGIME DE CAIXA: Excluir compras de cartão
-    AND (t.type = 'income' OR (t.type = 'expense' AND t.card_id IS NULL))
-),
-cm AS (
-  SELECT
-    tx.*,
-    DATE_TRUNC('month', (SELECT today FROM current_month))::DATE AS month_start
-  FROM tx
-)
-SELECT
-  month_start AS month,
-  COALESCE(SUM(CASE WHEN type='expense' THEN amount_cents ELSE 0 END),0)::BIGINT AS total_expense_cents,
-  COALESCE(SUM(CASE WHEN type='income'  THEN amount_cents ELSE 0 END),0)::BIGINT AS total_income_cents,
-  COALESCE(SUM(CASE WHEN type='income'  THEN amount_cents ELSE -amount_cents END),0)::BIGINT AS net_cents,
-  (
-    SELECT JSONB_AGG(x ORDER BY x.total_cents DESC)
-    FROM (
-      SELECT 
-        category_name AS category,
-        type,
-        SUM(amount_cents)::BIGINT AS total_cents
-      FROM cm
-      WHERE DATE_TRUNC('month', occurred_at) = month_start
-      GROUP BY category_name, type
-    ) x
-  ) AS categories
-FROM cm
-WHERE DATE_TRUNC('month', occurred_at) = month_start
-GROUP BY month_start;
-
-COMMENT ON VIEW public.pf_month_summary IS 
-  'Resumo financeiro do mês corrente em REGIME DE CAIXA (exclui compras de cartão para evitar duplicação).';
+-- ════════════════════════════════════════════════════════════════════════════
+-- IMPORTANTE: NÃO MEXER NA VIEW pf_month_summary!
+-- ════════════════════════════════════════════════════════════════════════════
+-- Motivo: A view pf_month_summary é usada por outros cards (SDM Projetado).
+-- Mexer nela afetaria múltiplos componentes.
+-- 
+-- A função pf_net_by_period() acima é usada APENAS pelo card "Saldo Líquido".
+-- Isso garante que só esse card opera em regime de caixa.
+-- ════════════════════════════════════════════════════════════════════════════
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- FIM DA MIGRATION
