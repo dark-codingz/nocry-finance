@@ -4,7 +4,7 @@
 // PROPÓSITO:
 // - Formulário reutilizável para criar despesas/receitas
 // - Validação com Zod + React Hook Form
-// - Integração com CurrencyInputBRL
+// - Integração com CurrencyInputIncremental (formatação estilo caixa)
 //
 // PROPS:
 // - kind: "expense" | "income" - Tipo de transação
@@ -23,7 +23,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'sonner';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
-import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
+import CurrencyInputIncremental from '@/components/form/CurrencyInputIncremental';
 import { useCategoriesForSelect, useAccounts, useCards } from '@/hooks/finance/lookups';
 import { useQueryClient } from '@tanstack/react-query';
 import { createCardInstallments } from '@/services/transactions';
@@ -154,7 +154,7 @@ export default function TxForm({
           name="amount_cents"
           control={control}
           render={({ field }) => (
-            <CurrencyInputBRL
+            <CurrencyInputIncremental
               value={typeof field.value === 'number' ? field.value : 0} // ✅ Garantir valor válido
               onValueChange={field.onChange}
               placeholder="R$ 0,00"

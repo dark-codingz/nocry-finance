@@ -106,7 +106,7 @@ export default function InvoiceCard({ invoice, isLoading }: InvoiceCardProps) {
           </span>
         )}
         <Link
-          href="/faturas"
+          href="/carteira"
           className="text-nocry-text hover:text-white underline-offset-4 hover:underline transition-colors text-xs ml-auto"
         >
           Ver faturas →

@@ -33,7 +33,7 @@ import {
   useAccounts,
   useCards,
 } from '@/hooks/finance/lookups';
-import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
+import CurrencyInputIncremental from '@/components/form/CurrencyInputIncremental';
 import { useCreateFixed, useUpdateFixed } from '@/hooks/finance/fixed';
 import { toast } from 'sonner';
 
@@ -207,7 +207,7 @@ export default function FixedForm({
           name="amount_cents"
           control={control}
           render={({ field }) => (
-            <CurrencyInputBRL
+            <CurrencyInputIncremental
               value={typeof field.value === 'number' ? field.value : 0}
               onValueChange={(c) => field.onChange(c)}
               className="w-full rounded-lg bg-transparent border border-white/10 px-3 py-2 text-white placeholder:text-[#9F9D9D] focus:border-white/20 transition-colors"

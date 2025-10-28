@@ -22,7 +22,7 @@ import {
   LoanEventType,
   LOAN_EVENT_TYPES,
 } from '@/domain/loans/eventTypes';
-import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
+import CurrencyInputIncremental from '@/components/form/CurrencyInputIncremental';
 import { toast } from 'sonner';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -117,7 +117,7 @@ export default function LoanEventForm({ loanId, type, onClose }: Props) {
           control={control}
           name="amount_cents"
           render={({ field }) => (
-            <CurrencyInputBRL
+            <CurrencyInputIncremental
               value={field.value}
               onValueChange={field.onChange}
               autoFocus

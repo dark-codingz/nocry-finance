@@ -28,7 +28,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
 import { useCreateCard, useUpdateCard } from '@/hooks/finance/cards';
-import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
+import CurrencyInputIncremental from '@/components/form/CurrencyInputIncremental';
 import { toast } from 'sonner';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ export default function CardForm({
           name="limit_cents"
           control={control}
           render={({ field }) => (
-            <CurrencyInputBRL
+            <CurrencyInputIncremental
               value={typeof field.value === 'number' ? field.value : 0}
               onValueChange={(c) => field.onChange(c)}
               placeholder="ex.: R$ 5.000,00"

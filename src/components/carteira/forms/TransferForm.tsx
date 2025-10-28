@@ -4,7 +4,7 @@
 // PROPÓSITO:
 // - Formulário para transferir valores entre contas do usuário
 // - Validação com Zod + React Hook Form
-// - CurrencyInputBRL para valores em centavos
+// - CurrencyInputIncremental para valores em centavos (formatação estilo caixa)
 // - Cria 2 transações vinculadas por transfer_group_id
 //
 // VALIDAÇÕES:
@@ -26,7 +26,7 @@
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, Controller } from 'react-hook-form';
-import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
+import CurrencyInputIncremental from '@/components/form/CurrencyInputIncremental';
 import { useAccounts } from '@/hooks/finance/lookups';
 import * as finance from '@/services/finance';
 import { useQueryClient } from '@tanstack/react-query';
@@ -142,7 +142,7 @@ export default function TransferForm({ onSuccess }: { onSuccess?: () => void }) 
       </div>
 
       {/* ════════════════════════════════════════════════════════════════
-          Valor (CurrencyInputBRL)
+          Valor (CurrencyInputIncremental)
           ════════════════════════════════════════════════════════════════ */}
       <div>
         <label className="text-sm text-[#CACACA] block mb-1">Valor</label>
@@ -150,7 +150,7 @@ export default function TransferForm({ onSuccess }: { onSuccess?: () => void }) 
           control={control}
           name="amount_cents"
           render={({ field }) => (
-            <CurrencyInputBRL
+            <CurrencyInputIncremental
               value={typeof field.value === 'number' ? field.value : 0}
               onValueChange={(c) => field.onChange(c)}
               className="w-full rounded-lg bg-transparent border border-white/10 px-3 py-2 text-white focus:border-white/20 transition-colors"

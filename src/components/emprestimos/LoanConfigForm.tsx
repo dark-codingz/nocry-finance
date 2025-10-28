@@ -16,7 +16,7 @@ import {
   useApplyInterestPeriod,
   type LoanSummary,
 } from '@/hooks/finance/loans';
-import CurrencyInputBRL from '@/components/form/CurrencyInputBRL';
+import CurrencyInputIncremental from '@/components/form/CurrencyInputIncremental';
 import { toast } from 'sonner';
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ export default function LoanConfigForm({
               name="interest_exact_cents"
               control={control}
               render={({ field }) => (
-                <CurrencyInputBRL
+                <CurrencyInputIncremental
                   value={typeof field.value === 'number' ? field.value : 0}
                   onValueChange={(cents) => field.onChange(cents)}
                   className="w-full rounded-lg bg-transparent border border-white/10 px-3 py-2 text-white focus:border-white/20 transition-colors"
