@@ -25,14 +25,5 @@ export default async function LoginPage() {
   // Não está logado: renderiza formulário de login
   console.log("[LoginPage] 🔐 Usuário NÃO logado, renderizando form");
   
-  return (
-    <>
-      {/* Banner de debug (remover depois) */}
-      <div style={{fontFamily:"monospace",fontSize:11,background:"#333",color:"#ff0",padding:6,position:"fixed",bottom:0,left:0,right:0,zIndex:9999}}>
-        <b>/login debug</b> • user: {user ? "yes" : "no"} • via: {source} • err: {errorReason ?? "-"}
-      </div>
-      
-      <LoginClientPage />
-    </>
-  );
+  return <LoginClientPage />;
 }

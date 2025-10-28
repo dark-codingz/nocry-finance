@@ -107,12 +107,6 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   console.log("[ProtectedLayout] ✅ Acesso liberado para:", user.email, "| via:", source);
 
   return (
-    <div suppressHydrationWarning>
-      {/* Painel de Debug - Remover após confirmar que funciona */}
-      <div style={{fontFamily:"monospace",fontSize:12,background:"#111",color:"#0f0",padding:8}}>
-        <b>Auth OK</b> • user: {user?.id} • via: {source} • sess?: {session ? "yes" : "no"} • err: {errorReason ?? "-"}
-      </div>
-      <AppShell>{children}</AppShell>
-    </div>
+    <AppShell>{children}</AppShell>
   );
 }
