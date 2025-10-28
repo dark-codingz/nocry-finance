@@ -20,6 +20,9 @@
 -- ────────────────────────────────────────────────────────────────────────────
 -- 1. Atualizar RPC: pf_net_by_period (Regime de Caixa)
 -- ────────────────────────────────────────────────────────────────────────────
+-- IMPORTANTE: DROP da função antiga antes de recriar (evita erro "not unique")
+DROP FUNCTION IF EXISTS public.pf_net_by_period(DATE, DATE);
+
 CREATE OR REPLACE FUNCTION public.pf_net_by_period(
   p_date_from DATE,
   p_date_to   DATE
