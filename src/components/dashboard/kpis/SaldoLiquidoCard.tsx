@@ -121,8 +121,12 @@ export default function SaldoLiquidoCard() {
         </div>
       ) : (
         <>
-          {/* Valor Principal */}
-          <div className="mt-1 text-2xl text-white font-bold">
+          {/* Valor Principal - Colorido baseado no saldo */}
+          <div className={`mt-1 text-2xl font-bold ${
+            netCents < 0 
+              ? 'text-red-400'  // Vermelho se negativo
+              : 'text-green-400' // Verde se positivo ou zero
+          }`}>
             {formatBRL(netCents)}
           </div>
 
