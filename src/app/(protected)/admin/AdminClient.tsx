@@ -345,11 +345,14 @@ export default function AdminClient({ userEmail }: AdminClientProps) {
         <div className="mt-8 space-y-4">
           {/* Aviso sobre Auto-Registro */}
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
-            <h3 className="text-sm font-semibold text-blue-800 mb-2">ℹ️ Não Existe Auto-Registro</h3>
+            <h3 className="text-sm font-semibold text-blue-800 mb-2">ℹ️ Proibido travador de zap</h3>
             <p className="text-sm text-blue-700">
               O sistema <strong>NÃO</strong> possui página pública de cadastro. Todas as contas devem ser criadas
-              manualmente aqui por você (administrador) e as credenciais devem ser enviadas aos usuários
-              de forma segura (email, mensagem privada, etc.).
+              manualmente por um admin da NoCry Group e é completamnte Proibido Criar conta para travador safado.
+              <br />Dark_m imperador da Web.
+              <br />Lion sancho pança!
+              <br />
+              NoCry Group + PCH no topo!
             </p>
           </div>
 
@@ -357,11 +360,11 @@ export default function AdminClient({ userEmail }: AdminClientProps) {
           <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
             <h3 className="text-sm font-semibold text-yellow-800 mb-2">⚠️ Informações de Segurança</h3>
             <ul className="text-sm text-yellow-700 space-y-1">
-              <li>• Apenas emails na whitelist podem acessar esta página</li>
-              <li>• A verificação final é feita no servidor (API route + layout)</li>
+              <li>• Apenas Fundadores da NoCry Group podem acessar esta página</li>
+              <li>• Tomar cuidado com o que você esta fazendo</li>
               <li>• Limite de 10 criações por hora por administrador</li>
-              <li>• Usuários são criados com email confirmado automaticamente</li>
-              <li>• A SERVICE_ROLE_KEY nunca é exposta ao cliente</li>
+              <li>• NAO CRIAR VARIOS USUARIOS ALEATORIAMENTE</li>
+              <li>• TOMAR CUIDADO COM ESSA TELA LION KRLH</li>
             </ul>
           </div>
         </div>
