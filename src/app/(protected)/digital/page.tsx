@@ -1,8 +1,12 @@
 // /src/app/digital/page.tsx
 'use client';
 
-import DevWarning from '@/components/ui/DevWarning';
+import { useEffect } from 'react';
 
 export default function DigitalDashboardPage() {
-  return <DevWarning />;
+  useEffect(() => {
+    window.location.href = 'https://offers.theresnocry.com';
+  }, []);
+
+  return null;
 }

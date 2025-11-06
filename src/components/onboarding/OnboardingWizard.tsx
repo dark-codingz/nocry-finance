@@ -403,7 +403,7 @@ export default function OnboardingWizard({ fullName }: { fullName: string }) {
         )}
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* ATO 2 — O PACTO */}
+        {/* ATO 2 — O CONTRATO */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         {act === 2 && (
           <motion.div
@@ -422,7 +422,7 @@ export default function OnboardingWizard({ fullName }: { fullName: string }) {
                 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight text-center mb-4"
                 style={{ color: "var(--nc-white)" }}
               >
-                O Pacto
+                O Contrato
               </motion.h2>
 
               <motion.p
@@ -513,7 +513,7 @@ export default function OnboardingWizard({ fullName }: { fullName: string }) {
                     borderColor: "var(--nc-gold)",
                     backgroundColor: pactAccepted ? "var(--nc-gold)" : "transparent",
                   }}
-                  aria-label="Aceitar o pacto NoCry"
+                  aria-label="Aceitar o contrato NoCry"
                   aria-checked={pactAccepted}
                 />
                 <span
