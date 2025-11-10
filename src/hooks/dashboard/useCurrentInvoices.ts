@@ -49,19 +49,19 @@ export function useCurrentInvoices(params: CurrentInvoicesParams) {
     queryKey: ['current-invoices', params.userId],
     queryFn: async (): Promise<CurrentInvoices> => {
       // ─────────────────────────────────────────────────────────────────
-      // 1. Buscar faturas atuais de todos os cartões
+      // 1. Buscar faturas atuais de todos os cartões (COM pagamentos)
       // ─────────────────────────────────────────────────────────────────
-      // NOTA: A view card_invoices_current já aplica RLS e filtra por user_id
+      // NOTA: A view card_invoices_with_payments calcula: charges - payments = balance
       const { data: invoices, error } = await supabase
-        .from('card_invoices_current')
-        .select('amount_cents, due_date, days_to_due');
+        .from('card_invoices_with_payments')
+        .select('balance_cents, due_date, days_to_due');
 
       if (error) throw error;
 
       // ─────────────────────────────────────────────────────────────────
-      // 2. Agregar valores de todos os cartões
+      // 2. Agregar valores de todos os cartões (saldo aberto = charges - payments)
       // ─────────────────────────────────────────────────────────────────
-      const amountCents = invoices?.reduce((sum, inv) => sum + (inv.amount_cents || 0), 0) || 0;
+      const amountCents = invoices?.reduce((sum, inv) => sum + (inv.balance_cents || 0), 0) || 0;
 
       // ─────────────────────────────────────────────────────────────────
       // 3. Encontrar próximo vencimento (menor due_date)

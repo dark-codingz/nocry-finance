@@ -128,13 +128,16 @@ export async function deleteOrArchiveCard(id: string) {
 // FATURAS: Consulta view card_invoices_current
 // ────────────────────────────────────────────────────────────────────────────
 
-/** Fatura atual de um cartão (calculada pela view) */
+/** Fatura atual de um cartão COM saldo aberto (charges - payments) */
 export type CardInvoice = {
   card_id: string;
   card_name: string;
   cycle_start: string; // date YYYY-MM-DD
   cycle_end: string; // date YYYY-MM-DD
-  amount_cents: number;
+  total_charges_cents: number; // Total de compras
+  total_payments_cents: number; // Total de pagamentos
+  balance_cents: number; // Saldo aberto (charges - payments)
+  amount_cents: number; // Alias para balance_cents (compatibilidade)
   due_date: string; // date YYYY-MM-DD
   days_to_due: number | null;
 };
@@ -143,11 +146,16 @@ export async function listCurrentInvoices() {
   const supabase = createSupabaseBrowser();
 
   const { data, error } = await supabase
-    .from('card_invoices_current')
+    .from('card_invoices_with_payments')
     .select('*');
 
   if (error) throw error;
-  return (data ?? []) as CardInvoice[];
+  
+  // Mapear balance_cents para amount_cents (compatibilidade)
+  return (data ?? []).map(inv => ({
+    ...inv,
+    amount_cents: inv.balance_cents,
+  })) as CardInvoice[];
 }
 
 // ────────────────────────────────────────────────────────────────────────────

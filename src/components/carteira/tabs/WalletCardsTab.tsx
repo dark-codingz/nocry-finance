@@ -27,6 +27,7 @@ import CardGlass from '@/components/ui/CardGlass';
 import EmptyState from '@/components/ui/EmptyState';
 import Drawer from '@/components/ui/Drawer';
 import CardForm from '@/components/carteira/forms/CardForm';
+import PayInvoiceModal from '@/components/carteira/modals/PayInvoiceModal';
 import { useWalletSearch } from '@/stores/walletSearch';
 import {
   useCardsList,
@@ -46,6 +47,7 @@ export default function WalletCardsTab() {
   const [openCreate, setOpenCreate] = useState(false);
   const [editItem, setEditItem] = useState<any | null>(null);
   const [viewCardId, setViewCardId] = useState<string | null>(null);
+  const [payInvoiceCardId, setPayInvoiceCardId] = useState<string | null>(null);
 
   // ──────────────────────────────────────────────────────────────────
   // Mapear faturas por card_id para acesso rápido
@@ -151,13 +153,21 @@ export default function WalletCardsTab() {
 
                   {/* Botões de ação */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    {inv && (
-                      <button
-                        onClick={() => setViewCardId(card.id)}
-                        className="text-xs px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[#CACACA] hover:bg-white/10 hover:text-white transition-all"
-                      >
-                        Ver fatura
-                      </button>
+                    {inv && inv.amount_cents > 0 && (
+                      <>
+                        <button
+                          onClick={() => setPayInvoiceCardId(card.id)}
+                          className="text-xs px-3 py-1 rounded-md bg-[#D4AF37]/10 border border-[#D4AF37]/30 text-[#D4AF37] hover:bg-[#D4AF37]/20 transition-all"
+                        >
+                          Pagar fatura
+                        </button>
+                        <button
+                          onClick={() => setViewCardId(card.id)}
+                          className="text-xs px-3 py-1 rounded-md bg-white/5 border border-white/10 text-[#CACACA] hover:bg-white/10 hover:text-white transition-all"
+                        >
+                          Ver fatura
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={() => setEditItem(card)}
@@ -279,6 +289,23 @@ export default function WalletCardsTab() {
           </div>
         )}
       </Drawer>
+
+      {/* ════════════════════════════════════════════════════════════════
+          Modal: Pagar Fatura
+          ════════════════════════════════════════════════════════════════ */}
+      {payInvoiceCardId && (
+        <PayInvoiceModal
+          isOpen={!!payInvoiceCardId}
+          card_id={payInvoiceCardId}
+          card_name={cards.find((c) => c.id === payInvoiceCardId)?.name || 'Cartão'}
+          invoice_balance_cents={invByCard[payInvoiceCardId]?.amount_cents || 0}
+          onClose={() => setPayInvoiceCardId(null)}
+          onSuccess={() => {
+            setPayInvoiceCardId(null);
+            // React Query vai refetch automaticamente
+          }}
+        />
+      )}
     </div>
   );
 }

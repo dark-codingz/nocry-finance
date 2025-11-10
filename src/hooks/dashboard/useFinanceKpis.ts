@@ -52,9 +52,10 @@ export function useFinanceKpis(params: FinanceKpisParams) {
       // ─────────────────────────────────────────────────────────────────
       // 1. Buscar receitas (income) e despesas (expense) do período
       // ─────────────────────────────────────────────────────────────────
+      // REGIME DE CAIXA: Incluir card_id para filtrar compras de cartão
       const { data: transactions, error } = await supabase
         .from('transactions')
-        .select('type, amount_cents, description')
+        .select('type, amount_cents, description, card_id')
         .eq('user_id', params.userId)
         .gte('occurred_at', params.from)
         .lte('occurred_at', params.to)
@@ -63,7 +64,7 @@ export function useFinanceKpis(params: FinanceKpisParams) {
       if (error) throw error;
 
       // ─────────────────────────────────────────────────────────────────
-      // 2. Agregar valores
+      // 2. Agregar valores (REGIME DE CAIXA)
       // ─────────────────────────────────────────────────────────────────
       let incomeCents = 0;
       let expenseCents = 0;
@@ -72,7 +73,10 @@ export function useFinanceKpis(params: FinanceKpisParams) {
       transactions?.forEach((tx) => {
         if (tx.type === 'income') {
           incomeCents += tx.amount_cents;
-        } else if (tx.type === 'expense') {
+        } else if (tx.type === 'expense' && tx.card_id === null) {
+          // REGIME DE CAIXA: Só conta despesa se NÃO for compra de cartão
+          // Compras de cartão ficam na "Fatura Atual"
+          // Apenas pagamentos de fatura (account_id preenchido) entram aqui
           expenseCents += tx.amount_cents;
           
           // Detectar contas fixas lançadas (description começa com '[FIXA]')

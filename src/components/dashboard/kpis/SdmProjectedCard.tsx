@@ -1,29 +1,27 @@
 // ============================================================================
-// SdmProjectedCard - Card de SDM Projetado
+// SdmProjectedCard - Card de SDM Projetado (REGIME DE CAIXA)
 // ============================================================================
 // PROPÓSITO:
 // - Calcular e exibir o SDM (Saldo Disponível no Mês) projetado
-// - Fórmula: Saldo Líquido - Fixas Restantes - Faturas do Mês
+// - Fórmula SIMPLIFICADA: Saldo Líquido - Fixas Restantes
 //
 // FÓRMULA:
-// SDM = net_cents - fixed_remaining_cents - invoices_due_this_month_cents
+// SDM = net_cents - fixed_remaining_cents
 //
-// IMPORTANTE - SOBRE DOUBLE COUNTING:
-// Se as compras de cartão já foram reconhecidas como despesas no momento
-// da compra, subtrair o valor total da fatura pode ocasionar 'double counting'
-// do ponto de vista de resultado contábil. Aqui estamos tratando SDM como
-// disponibilidade de caixa projetada (saídas futuras ainda não ocorridas),
-// por isso incluímos faturas do mês como compromisso de pagamento.
+// IMPORTANTE - REGIME DE CAIXA:
+// - Compras de cartão NÃO são saídas de caixa (não contam no Saldo Líquido)
+// - Fatura aberta NÃO é deduzida do SDM
+// - Apenas quando a fatura for PAGA, o pagamento impacta o Saldo Líquido
+// - Evita "double counting" e reflete disponibilidade real de caixa
 //
 // ORIGEM DOS DADOS:
-// - net_cents: pf_month_summary (Entradas - Saídas)
-// - fixed_remaining_cents: pf_fixed_remaining_current_month (Fixas não lançadas)
-// - invoices_due_this_month_cents: pf_card_invoices_due_this_month (Faturas a vencer)
+// - net_cents: Saldo Líquido do mês (Entradas - Saídas em dinheiro)
+// - fixed_remaining_cents: Fixas não lançadas (compromissos pendentes)
 //
 // VISUAL:
 // - Efeito glass
 // - Valor principal em branco (destaque)
-// - Breakdown com os 3 componentes em fonte menor
+// - Breakdown com os 2 componentes em fonte menor
 // ============================================================================
 
 'use client';
@@ -31,7 +29,6 @@
 import {
   useSaldoLiquido,
   useFixedRemaining,
-  useCurrentInvoicesTotal,
 } from '@/hooks/finance/sdm';
 import { formatBRL } from '@/lib/money';
 import { DollarSign } from 'lucide-react';
@@ -39,14 +36,12 @@ import { DollarSign } from 'lucide-react';
 export default function SdmProjectedCard() {
   const { data: saldoLiquido, isLoading: isLoadingLiquido } = useSaldoLiquido();
   const { data: fixedRemaining, isLoading: isLoadingFixed } = useFixedRemaining();
-  const { data: invoicesTotalData, isLoading: isLoadingInvoices } = useCurrentInvoicesTotal();
 
   // ──────────────────────────────────────────────────────────────────
   // Valores com fallback (sempre renderiza, mesmo sem dados)
   // ──────────────────────────────────────────────────────────────────
   const net = saldoLiquido?.net_cents ?? 0;
   const fixedRest = fixedRemaining?.fixed_remaining_cents ?? 0;
-  const invoicesAmount = invoicesTotalData?.invoices_current_total_cents ?? 0;
 
   // ──────────────────────────────────────────────────────────────────
   // Log de Diagnóstico (apenas em desenvolvimento)
@@ -56,24 +51,23 @@ export default function SdmProjectedCard() {
     console.log('[SDM] Breakdown:', {
       net_cents: net,
       fixed_remaining_cents: fixedRest,
-      invoices_current_total_cents: invoicesAmount,
-      sdm_calculated: net - fixedRest - invoicesAmount,
+      sdm_calculated: net - fixedRest,
     });
   }
 
   // ──────────────────────────────────────────────────────────────────
-  // Cálculo do SDM
+  // Cálculo do SDM (REGIME DE CAIXA)
   // ──────────────────────────────────────────────────────────────────
-  // NOTA: Este SDM assume faturas como compromisso de caixa.
-  // Se sua contabilidade já registrou a despesa no ato da compra,
-  // esse cartão é para "cash flow" (disponibilidade projetada).
-  // Evite usar SDM como resultado contábil para não duplicar despesas.
-  const sdm = net - fixedRest - invoicesAmount;
+  // IMPORTANTE: Fatura aberta NÃO é deduzida porque:
+  // - Compras de cartão NÃO são saídas de caixa (regime de caixa)
+  // - Fatura só impacta quando for PAGA (pagamento vira saída)
+  // - SDM = disponibilidade real após fixas pendentes
+  const sdm = net - fixedRest;
 
   // ──────────────────────────────────────────────────────────────────
   // Loading State Sutil (opcional, não bloqueia renderização)
   // ──────────────────────────────────────────────────────────────────
-  const isLoading = isLoadingLiquido || isLoadingFixed || isLoadingInvoices;
+  const isLoading = isLoadingLiquido || isLoadingFixed;
 
   return (
     <div className={`glass rounded-xl p-5 border border-white/10 ${isLoading ? 'opacity-70' : ''}`}>
@@ -115,17 +109,13 @@ export default function SdmProjectedCard() {
           <span>Fixas restantes:</span>
           <span className="text-white">{formatBRL(fixedRest)}</span>
         </div>
-        <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-red-400">−</span>
-          <span>Fatura atual:</span>
-          <span className="text-white">{formatBRL(invoicesAmount)}</span>
-        </div>
       </div>
 
       {/* 
         Comentário de Implementação:
-        Este SDM assume faturas como compromisso de caixa futuro.
-        Se despesas já foram contabilizadas na compra, use para "cash flow".
+        SDM = Saldo Líquido - Fixas Restantes (REGIME DE CAIXA).
+        Fatura de cartão NÃO é deduzida aqui porque compras não são saídas de caixa.
+        Apenas quando a fatura for PAGA, o pagamento impacta o saldo líquido.
       */}
     </div>
   );
