@@ -14,7 +14,8 @@
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCallback, useMemo } from 'react';
-import { useUser } from '@supabase/auth-helpers-react';
+import { createSupabaseBrowser } from '@/lib/supabase/client';
+import { useState, useEffect } from 'react';
 import {
   type AnalyticsFilters,
   type AnalyticsMode,
@@ -33,8 +34,15 @@ import {
 export function useAnalyticsFilters() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useUser();
-  const userId = session?.id || '';
+  const [userId, setUserId] = useState<string>('');
+
+  // Buscar userId do Supabase
+  useEffect(() => {
+    const supabase = createSupabaseBrowser();
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id || '');
+    });
+  }, []);
 
   // ──────────────────────────────────────────────────────────────────────
   // 1. Deserializar filtros da URL (ou usar defaults)

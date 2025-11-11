@@ -36,7 +36,6 @@ export function useDrilldownData(params: DrilldownParams) {
     enabled: !!params.filters.userId,
     retry: 2,
     refetchOnWindowFocus: false,
-    keepPreviousData: true, // Mantém dados anteriores durante paginação
   });
 }
 

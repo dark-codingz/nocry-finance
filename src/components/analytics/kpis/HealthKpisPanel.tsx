@@ -44,38 +44,38 @@ export default function HealthKpisPanel() {
       {/* Grid de KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <SavingsRatioCard
-          savingsRatioPct={data?.savingsRatioPct || 0}
-          mom={data?.savingsRatioMoM}
+          savingsRatioPct={data?.savingsRatio?.value || 0}
+          mom={data?.savingsRatio?.mom}
           isLoading={isLoading}
         />
 
         <DtiCard
-          dtiPct={data?.dtiPct || 0}
-          mom={data?.dtiMoM}
+          dtiPct={data?.dti?.value || 0}
+          mom={data?.dti?.mom}
           isLoading={isLoading}
         />
 
         <EmergencyCard
-          emergencyMonths={data?.emergencyMonths || 0}
-          mom={data?.emergencyMoM}
+          emergencyMonths={data?.emergency?.months || 0}
+          mom={0} // TODO: Calcular MoM
           isLoading={isLoading}
         />
 
         <RunwayCard
-          runwayMonths={data?.runwayMonths || 0}
-          mom={data?.runwayMoM}
+          runwayMonths={data?.runway?.months || 0}
+          mom={0} // TODO: Calcular MoM
           isLoading={isLoading}
         />
 
         <BudgetConsumedCard
-          consumedPct={data?.budgetConsumedPct || 0}
-          mom={data?.budgetConsumedMoM}
+          consumedPct={data?.budgetConsumed?.consumed || 0}
+          mom={0} // TODO: Calcular MoM
           isLoading={isLoading}
         />
 
         <CreditUtilizationCard
-          utilizationPct={data?.creditUtilizationPct || 0}
-          mom={data?.creditUtilizationMoM}
+          utilizationPct={data?.creditUtilization?.utilization || 0}
+          mom={0} // TODO: Calcular MoM
           isLoading={isLoading}
         />
       </div>
