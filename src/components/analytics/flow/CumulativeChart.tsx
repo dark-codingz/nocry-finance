@@ -19,8 +19,8 @@ import { formatBRL } from '@/lib/money';
 
 type DataPoint = {
   day: number;
-  cumulative_cents: number;
-  budget_line_cents: number;
+  cumulativeCents: number;
+  budgetLineCents: number;
 };
 
 type CumulativeChartProps = {
@@ -64,7 +64,7 @@ export default function CumulativeChart({ data, currentDay }: CumulativeChartPro
         {/* Linha do orçamento ideal (slope linear) */}
         <Line
           type="monotone"
-          dataKey="budget_line_cents"
+          dataKey="budgetLineCents"
           stroke="#10b981"
           strokeWidth={2}
           strokeDasharray="5 5"
@@ -75,7 +75,7 @@ export default function CumulativeChart({ data, currentDay }: CumulativeChartPro
         {/* Linha do gasto real acumulado */}
         <Line
           type="monotone"
-          dataKey="cumulative_cents"
+          dataKey="cumulativeCents"
           stroke="#3b82f6"
           strokeWidth={3}
           name="Gasto Acumulado"

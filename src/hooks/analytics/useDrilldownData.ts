@@ -15,14 +15,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getCacheKey } from '@/lib/analytics/cache-keys';
-import { getDrilldownData, type DrilldownParams } from '@/services/analytics/drilldown';
+import { getDrilldownData, type DrilldownParams, type DrilldownData } from '@/services/analytics/drilldown';
 
 // ────────────────────────────────────────────────────────────────────────────
 // HOOK
 // ────────────────────────────────────────────────────────────────────────────
 
 export function useDrilldownData(params: DrilldownParams) {
-  return useQuery({
+  return useQuery<DrilldownData>({
     queryKey: [
       ...getCacheKey('drilldown', params.filters),
       params.groupBy,

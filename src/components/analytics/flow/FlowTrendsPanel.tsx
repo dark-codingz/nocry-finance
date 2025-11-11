@@ -27,7 +27,8 @@ export default function FlowTrendsPanel() {
         <IncomeExpenseChart data={data?.series || []} />
       </ChartWrapper>
 
-      {/* Gráfico 2: S-curve (Gasto Acumulado vs Orçamento) */}
+      {/* Gráfico 2: S-curve (Gasto Acumulado vs Orçamento) - TODO FASE 2 */}
+      {/* 
       <ChartWrapper
         title="Projeção de Gastos do Mês"
         subtitle="Gasto acumulado vs linha ideal do orçamento"
@@ -36,10 +37,11 @@ export default function FlowTrendsPanel() {
         height={350}
       >
         <CumulativeChart
-          data={data?.cumulative || []}
-          currentDay={data?.currentDay || 1}
+          data={[]}
+          currentDay={1}
         />
       </ChartWrapper>
+      */}
     </div>
   );
 }

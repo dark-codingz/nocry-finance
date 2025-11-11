@@ -18,10 +18,10 @@ import { formatBRL } from '@/lib/money';
 
 type DataPoint = {
   month: string;
-  income_cents: number;
-  expense_cents: number;
-  net_cents: number;
-  ma3_cents?: number;
+  incomeCents: number;
+  expenseCents: number;
+  netCents: number;
+  ma3Cents?: number;
 };
 
 type IncomeExpenseChartProps = {
@@ -62,7 +62,7 @@ export default function IncomeExpenseChart({ data }: IncomeExpenseChartProps) {
         
         <Line
           type="monotone"
-          dataKey="income_cents"
+          dataKey="incomeCents"
           stroke="#10b981"
           strokeWidth={2}
           name="Entradas"
@@ -71,7 +71,7 @@ export default function IncomeExpenseChart({ data }: IncomeExpenseChartProps) {
         
         <Line
           type="monotone"
-          dataKey="expense_cents"
+          dataKey="expenseCents"
           stroke="#ef4444"
           strokeWidth={2}
           name="Saídas"
@@ -80,7 +80,7 @@ export default function IncomeExpenseChart({ data }: IncomeExpenseChartProps) {
         
         <Line
           type="monotone"
-          dataKey="net_cents"
+          dataKey="netCents"
           stroke="#3b82f6"
           strokeWidth={2}
           name="Líquido"
@@ -88,10 +88,10 @@ export default function IncomeExpenseChart({ data }: IncomeExpenseChartProps) {
         />
         
         {/* Média Móvel 3 meses */}
-        {data.some((d) => d.ma3_cents !== undefined) && (
+        {data.some((d) => d.ma3Cents !== undefined) && (
           <Line
             type="monotone"
-            dataKey="ma3_cents"
+            dataKey="ma3Cents"
             stroke="#f59e0b"
             strokeWidth={2}
             strokeDasharray="5 5"

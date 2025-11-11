@@ -9,7 +9,7 @@ import { useAnalyticsFilters } from '@/hooks/analytics/useAnalyticsFilters';
 import ChartWrapper from '@/components/analytics/shared/ChartWrapper';
 import DynamicTable from './DynamicTable';
 import { useState } from 'react';
-import type { GroupBy } from '@/services/analytics/drilldown';
+import type { GroupBy, DrilldownData } from '@/services/analytics/drilldown';
 
 export default function DrilldownPanel() {
   const { filters } = useAnalyticsFilters();
@@ -17,7 +17,7 @@ export default function DrilldownPanel() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  const { data, isLoading, error } = useDrilldownData({
+  const { data: rawData, isLoading, error } = useDrilldownData({
     filters,
     groupBy,
     page,
@@ -25,6 +25,8 @@ export default function DrilldownPanel() {
     orderBy: 'expense',
     orderDirection: 'desc',
   });
+  
+  const data = rawData as DrilldownData | undefined;
 
   const groupByOptions: { value: GroupBy; label: string }[] = [
     { value: 'month', label: 'Mês' },
