@@ -1,33 +1,34 @@
 # 📊 Analytics - Progresso da Implementação (FASE 1)
 
 **Última atualização:** 2025-01-11  
-**Status:** 🟢 EM ANDAMENTO (20% concluído)  
+**Status:** 🟢 EM ANDAMENTO (52% concluído)  
 **Branch:** `main`  
-**Commit:** `bf9679e2`
+**Commit:** `7ba74747`
 
 ---
 
 ## 📈 RESUMO EXECUTIVO
 
-✅ **Fundação concluída:** SQL Views + Lib  
-🔄 **Em andamento:** Services + Hooks + Componentes  
-⏳ **Próximo:** Integração da página + Testes
+✅ **Fundação concluída:** SQL Views + Lib + Services + Hooks + Shared  
+⏸️ **Pendente:** Componentes Visuais (Filtros, KPIs, Gráficos) + Página + Testes  
+⏳ **Próximo:** Filtros Globais + KPIs
 
 | Fase | Status | Progresso |
 |------|--------|-----------|
 | **Planejamento** | ✅ Concluído | 100% |
 | **SQL (Views)** | ✅ Concluído | 100% (6/6) |
 | **Lib (Formulas, Cache, Thresholds)** | ✅ Concluído | 100% (3/3) |
-| **Services** | 🔄 Iniciado | 0% (0/5) |
-| **Hooks** | ⏸️ Pendente | 0% (0/6) |
-| **Componentes** | ⏸️ Pendente | 0% (0/23) |
+| **Services** | ✅ Concluído | 100% (5/5) |
+| **Hooks** | ✅ Concluído | 100% (6/6) |
+| **Shared Components** | ✅ Concluído | 100% (3/3) |
+| **Componentes Visuais** | ⏸️ Pendente | 0% (0/20) |
 | **Página** | ⏸️ Pendente | 0% (0/1) |
 | **Testes** | ⏸️ Pendente | 0% |
-| **GERAL** | 🟢 | **20%** (9/44 arquivos) |
+| **GERAL** | 🟢 | **52%** (23/44 arquivos) |
 
 ---
 
-## ✅ CONCLUÍDO (9 arquivos, ~1500 LOC)
+## ✅ CONCLUÍDO (23 arquivos, ~2600 LOC)
 
 ### **1. SQL Views (6 arquivos, ~800 LOC)**
 
@@ -130,26 +131,88 @@
 
 ---
 
-## 🔄 EM ANDAMENTO
+### **3. Services (5 arquivos, ~400 LOC)** ✅
 
-### **3. Services (0/5 arquivos, 0/540 LOC)**
-- [ ] `services/analytics/kpis.ts` - Busca KPIs de saúde
-- [ ] `services/analytics/flow.ts` - Busca dados de Flow
-- [ ] `services/analytics/categories.ts` - Busca dados de Categorias
-- [ ] `services/analytics/credit.ts` - Busca dados de Crédito
-- [ ] `services/analytics/drilldown.ts` - Busca dados para tabela dinâmica
+#### `services/analytics/kpis.ts` ✅
+- `getHealthKpis()` - Busca KPIs de saúde (SR, DTI, Emergency, Runway, etc.)
+- Usa view `v_kpis_core`
+
+#### `services/analytics/flow.ts` ✅
+- `getFlowData()` - Busca séries temporais
+- Modo CAIXA: usa `v_cash_movements_monthly`
+- Modo COMPETÊNCIA: usa `v_charges_monthly`
+- Calcula média móvel (MA3)
+
+#### `services/analytics/categories.ts` ✅
+- `getCategoriesData()` - Busca Pareto + Budget comparison
+- Usa `v_budget_vs_actual` + `v_cash_movements_monthly`
+- Calcula percentual acumulado (Pareto 80/20)
+
+#### `services/analytics/credit.ts` ✅
+- `getCreditData()` - Busca utilização de crédito
+- Usa `v_statement_open`
+- Agrega por cartão e total
+
+#### `services/analytics/drilldown.ts` ✅
+- `getDrilldownData()` - Busca dados para tabela dinâmica
+- Agrupamento dinâmico por: período, conta, cartão, categoria
+- Paginação + ordenação
+
+---
+
+### **4. Hooks (6 arquivos, ~300 LOC)** ✅
+
+#### `hooks/analytics/useAnalyticsFilters.ts` ✅
+- Gerencia filtros globais (modo, período, contas, cartões, categorias)
+- Sincroniza com URL (searchParams)
+- Helpers: `setMode()`, `setPeriod()`, `setDateRange()`, etc.
+
+#### `hooks/analytics/useKpisData.ts` ✅
+- Wrapper React Query para `getHealthKpis()`
+- Cache: 5 minutos
+
+#### `hooks/analytics/useFlowData.ts` ✅
+- Wrapper React Query para `getFlowData()`
+- Cache: 5 minutos
+
+#### `hooks/analytics/useCategoriesData.ts` ✅
+- Wrapper React Query para `getCategoriesData()`
+- Cache: 5 minutos
+
+#### `hooks/analytics/useCreditData.ts` ✅
+- Wrapper React Query para `getCreditData()`
+- Cache: 5 minutos
+
+#### `hooks/analytics/useDrilldownData.ts` ✅
+- Wrapper React Query para `getDrilldownData()`
+- Cache: 2 minutos (interativo)
+- `keepPreviousData: true` (paginação suave)
+
+---
+
+### **5. Shared Components (3 arquivos, ~400 LOC)** ✅
+
+#### `shared/KpiCard.tsx` ✅
+- Card genérico para KPIs
+- Props: label, value, icon, badge, mom, subtitle
+- Suporta loading state
+- Badge com cores (success/warning/danger)
+
+#### `shared/ChartWrapper.tsx` ✅
+- Wrapper para gráficos
+- Props: title, subtitle, isLoading, error, actions, height
+- Loading skeleton + error fallback
+
+#### `shared/FilterChips.tsx` ✅
+- Chips de filtros aplicados
+- Remover filtro individual
+- Limpar todos os filtros
 
 ---
 
 ## ⏸️ PENDENTE
 
-### **4. Hooks (0/6 arquivos, 0/440 LOC)**
-- [ ] `hooks/analytics/useAnalyticsFilters.ts` - Hook para filtros globais (URL state)
-- [ ] `hooks/analytics/useKpisData.ts` - Hook para KPIs (React Query)
-- [ ] `hooks/analytics/useFlowData.ts` - Hook para Flow (React Query)
-- [ ] `hooks/analytics/useCategoriesData.ts` - Hook para Categorias (React Query)
-- [ ] `hooks/analytics/useCreditData.ts` - Hook para Crédito (React Query)
-- [ ] `hooks/analytics/useDrilldownData.ts` - Hook para Drill-down (React Query)
+### **6. Componentes Visuais (0/20 arquivos, 0/2620 LOC)**
 
 ### **5. Componentes (0/23 arquivos, 0/3350 LOC)**
 #### Filtros (0/6)
@@ -187,20 +250,15 @@
 - [ ] `drilldown/DrilldownPanel.tsx`
 - [ ] `drilldown/DynamicTable.tsx`
 
-#### Shared (0/3)
-- [ ] `shared/ChartWrapper.tsx`
-- [ ] `shared/KpiCard.tsx`
-- [ ] `shared/FilterChips.tsx`
-
-### **6. Página (0/1 arquivo, 0/350 LOC)**
+### **7. Página (0/1 arquivo, 0/350 LOC)**
 - [ ] `app/(protected)/analytics/page.tsx` - Reescrever com todos os painéis
 
-### **7. Invalidação de Cache (0 modificações)**
+### **8. Invalidação de Cache (0 modificações)**
 - [ ] `services/transactions.ts` - Adicionar `invalidateAnalytics()` em CRUD
 - [ ] `components/carteira/modals/PayInvoiceModal.tsx` - Invalidar após pagamento
 - [ ] `services/budgets.ts` - Invalidar após alterar orçamento
 
-### **8. Testes de Aceitação (0/6)**
+### **9. Testes de Aceitação (0/6)**
 - [ ] Cenário 1: Toggle Caixa x Competência
 - [ ] Cenário 2: Pagamento de Fatura
 - [ ] Cenário 3: Orçamento (S-curve)
@@ -208,7 +266,7 @@
 - [ ] Cenário 5: Cache (invalidação)
 - [ ] Cenário 6: Performance (< 300ms)
 
-### **9. Build & Deploy (0/3)**
+### **10. Build & Deploy (0/3)**
 - [ ] `pnpm build` - Build sem erros
 - [ ] `pnpm lint` - Lint sem warnings
 - [ ] Deploy para Vercel
@@ -278,6 +336,6 @@ pnpm add chart.js react-chartjs-2
 
 ---
 
-**Última atualização:** 2025-01-11 (Commit `bf9679e2`)  
-**Tempo estimado restante:** 4-5 dias (80% do trabalho ainda pendente)
+**Última atualização:** 2025-01-11 (Commit `7ba74747`)  
+**Tempo estimado restante:** 2-3 dias (48% do trabalho ainda pendente)
 
