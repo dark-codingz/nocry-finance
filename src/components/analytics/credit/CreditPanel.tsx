@@ -24,21 +24,21 @@ export default function CreditPanel() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
           {/* Gauge Agregado */}
-          {data && (
+          {data && data.aggregate && (
             <InvoiceGauge
-              used_cents={data.totalUsed_cents}
-              limit_cents={data.totalLimit_cents}
+              used_cents={data.aggregate.totalUsedCents}
+              limit_cents={data.aggregate.totalLimitCents}
               cardName="TOTAL"
             />
           )}
 
           {/* Gauges por Cartão */}
-          {data?.byCard.map((card) => (
+          {data?.cards.map((card) => (
             <InvoiceGauge
-              key={card.card_id}
-              used_cents={card.used_cents}
-              limit_cents={card.limit_cents}
-              cardName={card.card_name || 'Cartão'}
+              key={card.cardId}
+              used_cents={card.usedCents}
+              limit_cents={card.limitCents}
+              cardName={card.cardName || 'Cartão'}
             />
           ))}
         </div>

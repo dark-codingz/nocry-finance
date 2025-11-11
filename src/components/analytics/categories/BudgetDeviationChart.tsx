@@ -19,10 +19,10 @@ import {
 import { formatBRL } from '@/lib/money';
 
 type DataPoint = {
-  category_name: string;
-  budget_cents: number;
-  actual_cents: number;
-  variance_cents: number;
+  categoryName: string;
+  budgetCents: number;
+  actualCents: number;
+  varianceCents: number;
 };
 
 type BudgetDeviationChartProps = {
@@ -44,7 +44,7 @@ export default function BudgetDeviationChart({ data }: BudgetDeviationChartProps
         
         <YAxis
           type="category"
-          dataKey="category_name"
+          dataKey="categoryName"
           stroke="#9F9D9D"
           tick={{ fill: '#9F9D9D', fontSize: 11 }}
           width={120}
@@ -68,11 +68,11 @@ export default function BudgetDeviationChart({ data }: BudgetDeviationChartProps
         <ReferenceLine x={0} stroke="#666" strokeWidth={2} />
         
         {/* Barra de variação (negativo = economia, positivo = estouro) */}
-        <Bar dataKey="variance_cents" name="Desvio">
+        <Bar dataKey="varianceCents" name="Desvio">
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
-              fill={entry.variance_cents < 0 ? '#10b981' : '#ef4444'}
+              fill={entry.varianceCents < 0 ? '#10b981' : '#ef4444'}
             />
           ))}
         </Bar>

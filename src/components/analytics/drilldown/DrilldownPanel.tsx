@@ -9,8 +9,7 @@ import { useAnalyticsFilters } from '@/hooks/analytics/useAnalyticsFilters';
 import ChartWrapper from '@/components/analytics/shared/ChartWrapper';
 import DynamicTable from './DynamicTable';
 import { useState } from 'react';
-
-type GroupBy = 'period' | 'account' | 'card' | 'category';
+import type { GroupBy } from '@/services/analytics/drilldown';
 
 export default function DrilldownPanel() {
   const { filters } = useAnalyticsFilters();
@@ -23,15 +22,16 @@ export default function DrilldownPanel() {
     groupBy,
     page,
     pageSize,
-    orderBy: 'total_cents',
+    orderBy: 'expense',
     orderDirection: 'desc',
   });
 
   const groupByOptions: { value: GroupBy; label: string }[] = [
-    { value: 'period', label: 'Período' },
+    { value: 'month', label: 'Mês' },
+    { value: 'category', label: 'Categoria' },
     { value: 'account', label: 'Conta' },
     { value: 'card', label: 'Cartão' },
-    { value: 'category', label: 'Categoria' },
+    { value: 'type', label: 'Tipo (Entrada/Saída)' },
   ];
 
   return (
@@ -65,11 +65,11 @@ export default function DrilldownPanel() {
       >
         <DynamicTable
           data={data?.rows || []}
-          columns={data?.columns || []}
+          columns={['groupLabel', 'incomeCents', 'expenseCents', 'netCents', 'count']}
           isLoading={isLoading}
           onPageChange={setPage}
           currentPage={page}
-          totalPages={data?.totalPages || 1}
+          totalPages={data?.pagination ? Math.ceil(data.pagination.totalRows / data.pagination.pageSize) : 1}
         />
       </ChartWrapper>
     </div>

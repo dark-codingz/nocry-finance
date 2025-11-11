@@ -19,9 +19,9 @@ import {
 import { formatBRL } from '@/lib/money';
 
 type DataPoint = {
-  category_name: string;
-  total_cents: number;
-  cumulative_pct: number;
+  categoryName: string;
+  totalCents: number;
+  cumulativePercentage: number;
 };
 
 type ParetoChartProps = {
@@ -43,7 +43,7 @@ export default function ParetoChart({ data, onClickCategory }: ParetoChartProps)
         
         <YAxis
           type="category"
-          dataKey="category_name"
+          dataKey="categoryName"
           stroke="#9F9D9D"
           tick={{ fill: '#9F9D9D', fontSize: 11 }}
           width={120}
@@ -57,7 +57,7 @@ export default function ParetoChart({ data, onClickCategory }: ParetoChartProps)
           }}
           labelStyle={{ color: '#fff' }}
           formatter={(value: number, name: string) => {
-            if (name === 'total_cents') {
+            if (name === 'totalCents') {
               return [formatBRL(value / 100), 'Valor'];
             }
             return [`${value.toFixed(1)}%`, '% Acumulado'];
@@ -70,12 +70,12 @@ export default function ParetoChart({ data, onClickCategory }: ParetoChartProps)
         
         {/* Barras de valor */}
         <Bar
-          dataKey="total_cents"
+          dataKey="totalCents"
           fill="#3b82f6"
           name="Gasto"
-          onClick={(data) => {
-            if (onClickCategory && data) {
-              onClickCategory(data.category_name);
+          onClick={(data: any) => {
+            if (onClickCategory && data && data.categoryName) {
+              onClickCategory(data.categoryName);
             }
           }}
           cursor="pointer"
@@ -84,7 +84,7 @@ export default function ParetoChart({ data, onClickCategory }: ParetoChartProps)
         {/* Linha de % acumulado (Pareto) */}
         <Line
           type="monotone"
-          dataKey="cumulative_pct"
+          dataKey="cumulativePercentage"
           stroke="#f59e0b"
           strokeWidth={2}
           name="% Acumulado"
